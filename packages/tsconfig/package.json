@@ -1,0 +1,11 @@
+{
+  "name": "@opencruit/tsconfig",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "files": [
+    "base.json",
+    "node.json",
+    "svelte.json"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@opencruit/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    "./base": "./base.mjs",
+    "./svelte": "./svelte.mjs"
+  },
+  "dependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.0.1",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-svelte": "3.15.0",
+    "globals": "17.3.0",
+    "svelte-eslint-parser": "1.4.1",
+    "typescript-eslint": "8.56.0"
+  }
+}
