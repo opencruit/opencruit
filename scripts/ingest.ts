@@ -1,27 +1,33 @@
 import { createHash } from 'node:crypto';
-import { parse } from '@opencruit/parser-remoteok';
+import { remoteOKParser } from '@opencruit/parser-remoteok';
+import { weWorkRemotelyParser } from '@opencruit/parser-weworkremotely';
 import { validateRawJobs } from '@opencruit/parser-sdk';
+import type { Parser } from '@opencruit/parser-sdk';
 import { createDatabase, jobs } from '@opencruit/db';
+import { sql } from 'drizzle-orm';
 
 const db = createDatabase(process.env.DATABASE_URL!);
-import { sql } from 'drizzle-orm';
+
+const parsers: Parser[] = [remoteOKParser, weWorkRemotelyParser];
 
 function fingerprint(company: string, title: string, location?: string): string {
   const input = [company, title, location ?? ''].map((s) => s.toLowerCase().trim()).join('|');
   return createHash('sha256').update(input).digest('hex');
 }
 
-async function ingest() {
-  console.log('[ingest] Fetching jobs from RemoteOK...');
-  const result = await parse();
-  console.log(`[ingest] Received ${result.jobs.length} jobs`);
+async function ingestParser(parser: Parser): Promise<number> {
+  const { id, name } = parser.manifest;
+  console.log(`[ingest:${id}] Fetching jobs from ${name}...`);
+
+  const result = await parser.parse();
+  console.log(`[ingest:${id}] Received ${result.jobs.length} jobs`);
 
   const validated = validateRawJobs(result.jobs);
-  console.log(`[ingest] ${validated.length} jobs passed validation`);
+  console.log(`[ingest:${id}] ${validated.length} jobs passed validation`);
 
   if (validated.length === 0) {
-    console.log('[ingest] Nothing to insert');
-    process.exit(0);
+    console.log(`[ingest:${id}] Nothing to insert`);
+    return 0;
   }
 
   const rows = validated.map((job) => ({
@@ -44,7 +50,7 @@ async function ingest() {
     raw: job.raw ?? null,
   }));
 
-  console.log('[ingest] Upserting into database...');
+  console.log(`[ingest:${id}] Upserting into database...`);
 
   const upserted = await db
     .insert(jobs)
@@ -71,7 +77,30 @@ async function ingest() {
     })
     .returning({ id: jobs.id });
 
-  console.log(`[ingest] Done. ${upserted.length} jobs upserted.`);
+  console.log(`[ingest:${id}] ${upserted.length} jobs upserted.`);
+  return upserted.length;
+}
+
+async function ingest() {
+  let total = 0;
+  const errors: Array<{ id: string; error: unknown }> = [];
+
+  for (const parser of parsers) {
+    try {
+      total += await ingestParser(parser);
+    } catch (err) {
+      console.error(`[ingest:${parser.manifest.id}] Error:`, err);
+      errors.push({ id: parser.manifest.id, error: err });
+    }
+  }
+
+  console.log(`[ingest] Done. ${total} total jobs upserted across ${parsers.length} parsers.`);
+
+  if (errors.length > 0) {
+    console.error(`[ingest] ${errors.length} parser(s) failed: ${errors.map((e) => e.id).join(', ')}`);
+    process.exit(1);
+  }
+
   process.exit(0);
 }
 

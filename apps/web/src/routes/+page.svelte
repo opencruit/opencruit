@@ -99,7 +99,7 @@
 
           {#if job.tags && job.tags.length > 0}
             <div class="mt-2.5 flex flex-wrap gap-1.5">
-              {#each job.tags.slice(0, 4) as tag (tag)}
+              {#each job.tags.slice(0, 4) as tag, i (i)}
                 <span class="rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{tag}</span>
               {/each}
               {#if job.tags.length > 4}

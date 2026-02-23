@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss">
+  <channel>
+    <title>We Work Remotely: Remote jobs in design, programming, marketing and more</title>
+    <link>https://weworkremotely.com/remote-jobs.rss</link>
+    <description>We Work Remotely: Remote jobs in design, programming, marketing and more</description>
+    <language>en-US</language>
+    <ttl>60</ttl>
+    <item>
+      <media:content url="https://wwr-pro.s3.amazonaws.com/logos/0171/4199/logo.gif" type="image/png"/>
+      <title>Summedd: Full Stack Engineer with AI Coding expertise for SaaS Platform</title>
+      <region>Anywhere in the World</region>
+      <country></country>
+      <state>New South Wales</state>
+      <skills></skills>
+      <category>Full-Stack Programming</category>
+      <type>Full-Time</type>
+      <description>&lt;img src="https://we-work-remotely.imgix.net/logos/0171/4199/logo.gif?ixlib=rails-4.0.0&amp;w=50&amp;h=50&amp;dpr=2&amp;fit=fill&amp;auto=compress" /&gt;
+
+&lt;p&gt;
+  &lt;strong&gt;Headquarters:&lt;/strong&gt; New York
+    &lt;br /&gt;&lt;strong&gt;URL:&lt;/strong&gt; &lt;a href="http://summed.com"&gt;http://summed.com&lt;/a&gt;
+&lt;/p&gt;
+
+&lt;h1&gt;Full Stack Engineer&lt;/h1&gt;
+&lt;p class="MsoNormal"&gt;We're looking for a Full Stack Engineer who can build across the entire stack and has hands-on experience with AI coding tools. You’ll be working for a new SaaS product that simplifies accounting tax processes. You'll own features end-to-end, from database to UI, and help integrate AI capabilities into our product. If you're comfortable jumping between frontend and backend and enjoy working with modern AI tools and APIs, this is the role for you.&lt;/p&gt;
+&lt;p class="MsoNormal"&gt;The management team is primarily in USA including a product manager so you’ll need to be available at least some USA business hours (east cost time zone). The rest of the management team is in Sydney, Australia which is where the interviewing team is based.&lt;/p&gt;
+&lt;h2&gt;About the Role&lt;/h2&gt;
+&lt;p class="MsoNormal"&gt;You'll be building and shipping features that tax accountants interact with every day. This means writing clean, maintainable code on both the frontend and backend, collaborating closely with product and design, and bringing AI-powered features to life. We need someone who can move fast, solve problems independently, and deliver work that just works.&lt;/p&gt;
+&lt;h2&gt;Key Responsibilities&lt;/h2&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Build and maintain features across the full stack, from frontend interfaces to backend services and databases&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Design and implement RESTful APIs and integrate with third-party services&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Develop responsive, performant user interfaces with modern frontend frameworks&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Integrate AI/ML capabilities into the product, including working with LLMs, embeddings, and AI APIs&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Write clean, tested, and well-documented code&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Participate in code reviews and contribute to engineering best practices&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Collaborate with product and design to turn requirements into technical solutions&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Debug and resolve issues across the stack&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Optimise application performance and scalability&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Stay current with emerging technologies, particularly in the AI space&lt;/p&gt;
+&lt;h2&gt;Requirements&lt;/h2&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;4+ years of professional software development experience&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Strong proficiency in frontend development (React, Vue, or similar frameworks)&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Strong proficiency in backend development (Node.js, Python, Go, or similar)&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Experience with relational databases (PostgreSQL, MySQL) and NoSQL databases&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Hands-on experience with AI/ML integration, such as working with OpenAI, Anthropic, or similar APIs&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Understanding of prompt engineering, embeddings, vector databases, or RAG architectures&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Experience with cloud platforms (AWS, GCP, or Azure)&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Familiarity with CI/CD pipelines and DevOps practices&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Strong problem-solving skills and ability to work independently&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Good communication skills and ability to collaborate with non-technical stakeholders&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Build and ship features rapidly using AI-assisted workflows (Claude Code, Cursor, Copilot)&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&amp;nbsp;&lt;/p&gt;
+&lt;h2&gt;Nice to Have&lt;/h2&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Experience fine-tuning models or working with ML pipelines&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Familiarity with LangChain, LlamaIndex, or similar AI frameworks&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Contributions to open-source projects and a passion for staying on top of the latest advancements in AI coding and development.&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Experience in a startup or fast-paced environment&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&amp;nbsp;&lt;/p&gt;
+&lt;h2&gt;What We Offer&lt;/h2&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Competitive salary&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Opportunity to work on cutting-edge AI-powered products&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Collaborative, low-ego team culture&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Flexible working arrangements&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&lt;span&gt;•&lt;span&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;/span&gt;&lt;/span&gt;Room to grow and take on more responsibility&lt;/p&gt;
+&lt;p class="MsoListParagraph"&gt;&amp;nbsp;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;To apply:&lt;/strong&gt; &lt;a href="https://weworkremotely.com/remote-jobs/summedd-full-stack-engineer-with-ai-coding-expertise-for-saas-platform"&gt;https://weworkremotely.com/remote-jobs/summedd-full-stack-engineer-with-ai-coding-expertise-for-saas-platform&lt;/a&gt;&lt;/p&gt;
+</description>
+      <pubDate>Sun, 22 Feb 2026 04:18:34 +0000</pubDate>
+      <expires_at>Tue, 24 Mar 2026 04:18:34 +0000</expires_at>
+      <guid>https://weworkremotely.com/remote-jobs/summedd-full-stack-engineer-with-ai-coding-expertise-for-saas-platform</guid>
+      <link>https://weworkremotely.com/remote-jobs/summedd-full-stack-engineer-with-ai-coding-expertise-for-saas-platform</link>
+    </item>
+    <item>
+      <media:content url="https://wwr-pro.s3.amazonaws.com/logos/0171/4191/logo.gif" type="image/png"/>
+      <title>Coorbiz: Satiş Ortaği- Jetli̇d</title>
+      <region>Anywhere in the World</region>
+      <country></country>
+      <state></state>
+      <skills></skills>
+      <category>All Other Remote</category>
+      <type>Full-Time</type>
+      <description>&lt;img src="https://we-work-remotely.imgix.net/logos/0171/4191/logo.gif?ixlib=rails-4.0.0&amp;w=50&amp;h=50&amp;dpr=2&amp;fit=fill&amp;auto=compress" /&gt;
+
+&lt;p&gt;
+  &lt;strong&gt;Headquarters:&lt;/strong&gt; Istanbul, Türkiye
+    &lt;br /&gt;&lt;strong&gt;URL:&lt;/strong&gt; &lt;a href="http://coorbiz.com"&gt;http://coorbiz.com&lt;/a&gt;
+&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Biz Kimiz?&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Jetlid, yenilikçi bir çalışma platformu olarak, bireylerin özgürce çalışabilecekleri, lider sektör firmalarının ürünlerini tanıtarak gelir elde edebilecekleri bir fırsat sunuyor. Hem kişisel gelişim fırsatları hem de ticari başarılar elde etmek isteyenlere yönelik bir platformdur.&lt;/p&gt;&lt;p&gt;&amp;nbsp;&lt;/p&gt;&lt;p&gt;&amp;nbsp;&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Kimler Başvurabilir?&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Girişimcilik ruhuna sahip, kendi işini kurmayı isteyen veya bu alana ilgi duyan,&lt;br&gt;Jetlid markasını temsil edebilecek vizyon ve prensiplere sahip,&lt;br&gt;Kendini geliştirmeye, yeni ürünler öğrenmeye ve eğitimlere açık,&lt;br&gt;Bireysel ya da kurumsal müşteri portföyüne sahip, iletişim becerileri güçlü,&lt;br&gt;Zaman yönetimi ve çalışma planlamasında özgür, sorumluluk sahibi,&lt;br&gt;Sabit maaş beklentisi olmayan, kazancını performansı ve gayretiyle elde etmek isteyen,&lt;br&gt;Yüksek gelir paylaşımı modeliyle kazanç sağlamaya istekli.&lt;/p&gt;&lt;p&gt;&amp;nbsp;&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Pozisyondan Beklediğimiz Görevler&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Satış Ortaklarımızın ana görevi, Jetlid ’in anlaşmalı olduğu firmaların ürünlerini hedef kitleye tanıtmak ve yönlendirmektir. Satış sürecini tamamlamak, sözleşme imzalamak ve tahsilat yapmak gibi sorumluluklar bulunmamaktadır. Satışa dönüşen her referansınız için, ilgili firmalardan komisyon kazanacaksınız.&lt;/p&gt;&lt;p&gt;&amp;nbsp;&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Neler Kazanacaksınız?&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Esnek Çalışma Modeli: Sabit maaş yok, tamamen performansa dayalı gelir sistemi. Çalışma saatlerinizi ve hedeflerinizi kendiniz belirleyebilirsiniz.&lt;br&gt;Eğitim Fırsatları: Ürün ve hizmetlerle ilgili eğitimler ve Jetlid ekibine özel dijital eğitimlere istediğiniz zaman erişebilirsiniz.&lt;br&gt;Özel İndirimler: Anlaşmalı iş ortaklarından indirimli faydalar sağlarsınız.&lt;/p&gt;&lt;p&gt;&amp;nbsp;&lt;/p&gt;&lt;p&gt;Jetlid Satış Ortağı Olmak İçin Hemen Başvurun!&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;To apply:&lt;/strong&gt; &lt;a href="https://weworkremotely.com/remote-jobs/coorbiz-satis-ortagi-jetli-d"&gt;https://weworkremotely.com/remote-jobs/coorbiz-satis-ortagi-jetli-d&lt;/a&gt;&lt;/p&gt;
+</description>
+      <pubDate>Fri, 20 Feb 2026 22:41:40 +0000</pubDate>
+      <expires_at>Sun, 22 Mar 2026 22:41:40 +0000</expires_at>
+      <guid>https://weworkremotely.com/remote-jobs/coorbiz-satis-ortagi-jetli-d</guid>
+      <link>https://weworkremotely.com/remote-jobs/coorbiz-satis-ortagi-jetli-d</link>
+    </item>
+    <item>
+      <media:content url="https://wwr-pro.s3.amazonaws.com/logos/0171/4190/logo.gif" type="image/png"/>
+      <title>Ottimate: Director of Partner Marketing</title>
+      <region>Anywhere in the World</region>
+      <country></country>
+      <state></state>
+      <skills>Analytics, Google Analytics, Monitoring and Analytics, Predictive Analytics, Cyber Security, Endpoint Security, Analytics Tools, Sales Analytics, Ecommerce Web Development, and Ecommerce Management</skills>
+      <category>All Other Remote</category>
+      <type>Full-Time</type>
+      <description>&lt;img src="https://we-work-remotely.imgix.net/logos/0171/4190/logo.gif?ixlib=rails-4.0.0&amp;w=50&amp;h=50&amp;dpr=2&amp;fit=fill&amp;auto=compress" /&gt;
+
+&lt;p&gt;
+  &lt;strong&gt;Headquarters:&lt;/strong&gt; United States
+    &lt;br /&gt;&lt;strong&gt;URL:&lt;/strong&gt; &lt;a href="http://ottimate.com"&gt;http://ottimate.com&lt;/a&gt;
+&lt;/p&gt;
+
+&lt;strong&gt;Description&lt;/strong&gt;&lt;br&gt;&lt;h3&gt;About Ottimate&lt;/h3&gt;&lt;p&gt;Ottimate is an AI-powered AP [Accounts Payable] automation platform that empowers finance teams to reduce costs, prevent overpayments, detect fraud, and enforce policy compliance across the entire invoice-to-payment lifecycle.&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Responsibilities&lt;/strong&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Support the recruitment process for partner acquisition, providing air cover to the Alliances team to ensure Ottimate is top of mind for our future channel partners&lt;/li&gt;&lt;li&gt;Develop channel marketing strategies designed for all types of partners (reseller, referral, OEM) to drive long-term, scalable growth&lt;/li&gt;&lt;li&gt;Work closely with each partner to understand and execute on the optimal GTM tactics for driving joint pipeline and co-sell opportunities based on partners’ tiering and strategic importance&lt;/li&gt;&lt;li&gt;Produce joint content assets in collaboration with industry subject matter experts to tell the ultimate “better together” story&lt;/li&gt;&lt;li&gt;Ensure partners are kept up-to-date with the latest product and company announcements from Ottimate&lt;/li&gt;&lt;li&gt;Work with the Ottimate events team to ensure partner participation is considered in all Ottimate marketing motions&amp;nbsp;&lt;/li&gt;&lt;li&gt;Own the partner marketing budget, ensuring it’s allocated to drive maximum ROI&lt;/li&gt;&lt;li&gt;Conduct market research and analysis to identify channel trends, opportunities, and competitor activities&lt;/li&gt;&lt;li&gt;Drive industry-specific marketing to the appropriate partner audience &lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;br&gt;&lt;strong&gt;Requirements&lt;/strong&gt;&lt;br&gt;&lt;ul&gt;&lt;li&gt;Proven experience of at least 8 years in channel marketing or related roles&lt;/li&gt;&lt;li&gt;Demonstrated success in developing and executing comprehensive channel marketing strategies&lt;/li&gt;&lt;li&gt;Strong leadership and people management skills&lt;/li&gt;&lt;li&gt;Excellent communication and interpersonal skills&lt;/li&gt;&lt;li&gt;Ability to build and maintain strong relationships with partners&lt;/li&gt;&lt;li&gt;Proficiency in demand generation and lead generation strategies&lt;/li&gt;&lt;li&gt;Experience in utilizing marketing automation platforms (Marketo) and CRM systems (SFDC)&lt;/li&gt;&lt;li&gt;Knowledge of distribution and partner channel dynamics in the AP space&lt;/li&gt;&lt;/ul&gt;&lt;br&gt;&lt;br&gt;&lt;strong&gt;Benefits&lt;/strong&gt;&lt;br&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;We care deeply about making Ottimate an incredible place to work and invest a significant amount of time and energy into creating and maintaining a company culture that provides our team with a generous level of support whilst inspiring them to do their best work.&amp;nbsp;&lt;/p&gt;&lt;p&gt;The specific benefits/perks we offer are continually evolving, but currently include:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Compensation:  $170,000-190,000 base + Variable: $35,000-55,000&lt;/li&gt;&lt;li&gt;Work from home in an energetic remote-first environment that supports flexible working hours and understands work-life balance.&lt;/li&gt;&lt;li&gt;Competitive salary based on skills &amp;amp; experience.&lt;/li&gt;&lt;li&gt;Medical, Dental, Vision and other Company-Subsidized Benefits for you and your family.&lt;/li&gt;&lt;li&gt;Employer sponsored 401(k) with company match.&lt;/li&gt;&lt;li&gt;Paid Time Off (and the encouragement to use it).&lt;/li&gt;&lt;li&gt;Annual company retreats.&lt;/li&gt;&lt;li&gt;Promote from within philosophy.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Beyond the tangible benefits though:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;You will be part of a growing team, at a pinnacle moment of scale for the business, and experience the excitement of working in a startup where each action makes a huge difference.&lt;/li&gt;&lt;li&gt;You will have the agency to solve difficult problems creatively, the freedom to explore work that inspires you, and infrastructure to ensure you're constantly challenged and developing.&lt;/li&gt;&lt;li&gt;You will work with sharp, passionate teammates solving some of the most unique challenges and positioning our product as a premier finance automation solution.&amp;nbsp;&lt;/li&gt;&lt;li&gt;Our commitment to empowering a diverse and inclusive workforce, celebrating differences, and creating a safe space for our employees to bring their whole selves to work is second to none.&lt;/li&gt;&lt;li&gt;We are transforming entire industries using innovative technology including Artificial Intelligence, Payment Tech, and Neural Networks.&lt;/li&gt;&lt;li&gt;Our leaders lead with a people-first approach; inspiring excellence, nurturing ideas, and finding creative ways to eliminate obstacles for cultivating growth.&lt;/li&gt;&lt;li&gt;We truly love what we do and who we do it with - and we think you will too!&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;Ottimate is an equal opportunity employer that is committed to diversity and inclusion. We do not discriminate based on race, color, national origin, religion, gender, gender expression, sexual orientation, age, veteran status, disability status, or marital status. If you are excited about the role but do not meet 100% of the qualifications listed above, we encourage you to apply. Nothing in this job posting should be construed as an offer or guarantee of employment.&lt;/p&gt;&lt;p&gt;#LI-Remote&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;To apply:&lt;/strong&gt; &lt;a href="https://weworkremotely.com/remote-jobs/ottimate-director-of-partner-marketing"&gt;https://weworkremotely.com/remote-jobs/ottimate-director-of-partner-marketing&lt;/a&gt;&lt;/p&gt;
+</description>
+      <pubDate>Fri, 20 Feb 2026 22:41:40 +0000</pubDate>
+      <expires_at>Sun, 22 Mar 2026 22:41:40 +0000</expires_at>
+      <guid>https://weworkremotely.com/remote-jobs/ottimate-director-of-partner-marketing</guid>
+      <link>https://weworkremotely.com/remote-jobs/ottimate-director-of-partner-marketing</link>
+    </item>
+    <item>
+      <media:content url="https://wwr-pro.s3.amazonaws.com/logos/0171/4192/logo.gif" type="image/png"/>
+      <title>Betu: Front End Web Developer - BetU</title>
+      <region>Denpasar</region>
+      <country></country>
+      <state></state>
+      <skills>Cross-Browser Development, Version Control, DevOps, Cryptocurrency, and Cross-Selling</skills>
+      <category>Back-End Programming</category>
+      <type>Full-Time</type>
+      <description>&lt;img src="https://we-work-remotely.imgix.net/logos/0171/4192/logo.gif?ixlib=rails-4.0.0&amp;w=50&amp;h=50&amp;dpr=2&amp;fit=fill&amp;auto=compress" /&gt;
+
+&lt;p&gt;
+  &lt;strong&gt;Headquarters:&lt;/strong&gt; [REMOTE]
+    &lt;br /&gt;&lt;strong&gt;URL:&lt;/strong&gt; &lt;a href="http://betu.io"&gt;http://betu.io&lt;/a&gt;
+&lt;/p&gt;
+
+&lt;div class="single-job-form"&gt;
+&lt;p&gt;BetU is a crypto sports betting and casino platform that is seeking a talented and experienced Front End Web Developer to join our team.&lt;br&gt;
+&lt;br&gt;
+As a Front End Web Developer, you will be responsible for designing and developing the user interface for our platform. You will work closely with our product and design team to translate their vision into functional, engaging and visually appealing web applications.&lt;/p&gt;
+&lt;p&gt;Responsibilities:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Collaborate with product and design teams to develop intuitive and visually appealing user interfaces that meet business requirements and adhere to brand guidelines.&lt;/li&gt;
+&lt;li&gt;Write high-quality, modular and reusable code that is maintainable and scalable.&lt;/li&gt;
+&lt;li&gt;Develop and maintain the front-end of the BetU platform using HTML, CSS, JavaScript and NextJS.&lt;/li&gt;
+&lt;li&gt;Implement responsive designs that work across desktop and mobile platforms.&lt;/li&gt;
+&lt;li&gt;Optimize application performance to ensure fast loading times and smooth user experience.&lt;/li&gt;
+&lt;li&gt;Work with back-end developers to integrate front-end functionality with server-side logic.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Requirements:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;2+ years of experience in front-end web development.&lt;/li&gt;
+&lt;li&gt;Strong knowledge of HTML, CSS, JavaScript and&amp;nbsp;NextJS&lt;/li&gt;
+&lt;li&gt;Experience with version control using Git.&lt;/li&gt;
+&lt;li&gt;Experience with responsive design and cross-browser compatibility.&lt;/li&gt;
+&lt;li&gt;Strong understanding of web accessibility and SEO best practices.&lt;/li&gt;
+&lt;li&gt;Experience with web performance optimization techniques.&lt;/li&gt;
+&lt;li&gt;Excellent problem-solving and communication skills.&lt;/li&gt;
+&lt;li&gt;Ability to work remotely as part of a remote workforce.&amp;nbsp;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Preferred Qualifications:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Experience with server-side rendering.&lt;/li&gt;
+&lt;li&gt;Experience with Agile methodologies.&lt;/li&gt;
+&lt;li&gt;Interest in sports &amp;amp; igaming&lt;/li&gt;
+&lt;li&gt;Basic knowledge of cryptocurrency&lt;/li&gt;
+&lt;li&gt;Familiarized with BetU.io&amp;nbsp;&amp;amp; EarnU.io platforms&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Candidates are encouraged to explore our website at BetU.io and become familiar with the platform's features, design, and functionality.&amp;nbsp;&lt;br&gt;
+&lt;br&gt;
+If you have a passion for building high-quality, user-friendly web applications and are excited about working in the fast-paced world of crypto sports betting and casino, we'd love to hear from you.&lt;br&gt;
+&amp;nbsp;&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;To apply:&lt;/strong&gt; &lt;a href="https://weworkremotely.com/remote-jobs/betu-front-end-web-developer-betu"&gt;https://weworkremotely.com/remote-jobs/betu-front-end-web-developer-betu&lt;/a&gt;&lt;/p&gt;
+</description>
+      <pubDate>Fri, 20 Feb 2026 22:41:40 +0000</pubDate>
+      <expires_at>Sun, 22 Mar 2026 22:41:40 +0000</expires_at>
+      <guid>https://weworkremotely.com/remote-jobs/betu-front-end-web-developer-betu</guid>
+      <link>https://weworkremotely.com/remote-jobs/betu-front-end-web-developer-betu</link>
+    </item>
+    <item>
+      <media:content url="https://wwr-pro.s3.amazonaws.com/logos/0171/4189/logo.gif" type="image/png"/>
+      <title>WEX: Product Marketing Manager - Corporate Payments</title>
+      <region>Maine</region>
+      <country></country>
+      <state></state>
+      <skills>Analytics, Google Analytics, Monitoring and Analytics, Predictive Analytics, Cyber Security, Endpoint Security, Analytics Tools, Sales Analytics, Ecommerce Web Development, and Ecommerce Management</skills>
+      <category>Sales and Marketing</category>
+      <type>Full-Time</type>
+      <description>&lt;img src="https://we-work-remotely.imgix.net/logos/0171/4189/logo.gif?ixlib=rails-4.0.0&amp;w=50&amp;h=50&amp;dpr=2&amp;fit=fill&amp;auto=compress" /&gt;
+
+&lt;p&gt;
+  &lt;strong&gt;Headquarters:&lt;/strong&gt; Global Headquarters
+    &lt;br /&gt;&lt;strong&gt;URL:&lt;/strong&gt; &lt;a href="http://wexinc.com"&gt;http://wexinc.com&lt;/a&gt;
+&lt;/p&gt;
+
+&lt;div&gt;&lt;p&gt;About the Role&lt;/p&gt;&lt;p&gt;&lt;span&gt;We’re looking for a customer-obsessed Product Marketing Manager (PMM) to own the go-to-market strategy for WEX's Corporate Payments solutions, including our Embedded Payments portfolio.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;span&gt;You’ll be responsible for shaping how we competitively position our Embedded Payments offerings, communicate the value and drive adoption among core Payments audiences (Treasurers, CFOs) and emerging influencers (Developers, CTOs).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;span&gt;We’re looking for a PMM who brings a data-first mindset, strong strategic clarity, and a bias for action — someone who can convert complex market dynamics and technical capabilities into clear go-to-market strategies, measure what matters, and partner closely with sales, product, marketing, and technology teams to deliver results.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;How You'll Make an Impact&lt;/p&gt;&lt;p&gt;&lt;span&gt;Own positioning, messaging and GTM strategy&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Define and evolve messaging pillars, value propositions, and sales narratives tailored to core and emerging Payments audiences.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Translate technical capabilities, like virtual card integrations and Payment APIs, into compelling stories that resonate.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Use customer and market insights to sharpen our differentiation in the Payments industry.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;span&gt;Drive launches and adoption:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Lead cross-functional go-to-market efforts for the Embedded Payment portfolio, including new product features and API enhancements.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Build adoption programs that help Payments customers onboard quickly and see value from their first use.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Ensure launches deliver clear, measurable impact in awareness, usage and customer satisfaction.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;span&gt;Enable sales and marketing to win&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Build and maintain sales enablement materials, including those targeting technical audiences.&amp;nbsp;&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Deliver ongoing updates and competitive insights that empower sales teams to position WEX effectively.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Partner with the broader marketing team on targeted campaigns to drive acquisition and adoption.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;span&gt;Fuel customer and market insight&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Conduct primary and secondary research, including customer interviews and win/loss analysis.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Track industry trends to identify opportunities.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Measure adoption, funnel velocity and win rates to make data-driven recommendations.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;Who You Are&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;A motivated, data-driven product marketer who’s eager to own a portfolio and grow your expertise.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Comfortable working cross-functionally with Product, Sales, and Marketing to execute go-to-market strategies.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Customer-obsessed—you lead with insight, empathy, and curiosity about the Payments industry.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;A clear, confident communicator who can translate complexity into simplicity.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Collaborative but decisive—you know when to pull in stakeholders and when to move quickly.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;Experience You'll Bring&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;5+ years of relevant work experience, including 2+ years in product marketing or related roles in B2B SaaS, fintech or payments.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Experience building go-to-market strategies, messaging, and enablement content.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Strong analytical and research skills; proven ability to validate assumptions and surface insights.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Exceptional writing and presentation skills.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Experience with marketing to technical audiences.&amp;nbsp;&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;span&gt;Bachelor’s degree in marketing, business, communications, or related field.&lt;/span&gt;&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&amp;nbsp;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;The base pay range represents the anticipated low and high end of the pay range for this position. Actual pay rates will vary and will be based on various factors, such as your qualifications, skills, competencies, and proficiency for the role. Base pay is one component of WEX's total compensation package. Most sales positions are eligible for commission under the terms of an applicable plan. Non-sales roles are typically eligible for a quarterly or annual bonus based on their role and applicable plan. WEX's comprehensive and market competitive benefits are designed to support your personal and professional well-being. Benefits include health, dental and vision insurances, retirement savings plan, paid time off, health savings account, flexible spending accounts, life insurance, disability insurance, tuition reimbursement, and more.  For more information, check out the "About Us" section.&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;Pay Range: $94,000.00 - $125,000.00&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;To apply:&lt;/strong&gt; &lt;a href="https://weworkremotely.com/remote-jobs/wex-product-marketing-manager-corporate-payments"&gt;https://weworkremotely.com/remote-jobs/wex-product-marketing-manager-corporate-payments&lt;/a&gt;&lt;/p&gt;
+</description>
+      <pubDate>Fri, 20 Feb 2026 22:41:40 +0000</pubDate>
+      <expires_at>Sun, 22 Mar 2026 22:41:40 +0000</expires_at>
+      <guid>https://weworkremotely.com/remote-jobs/wex-product-marketing-manager-corporate-payments</guid>
+      <link>https://weworkremotely.com/remote-jobs/wex-product-marketing-manager-corporate-payments</link>
+    </item>
+  </channel>
+</rss>
