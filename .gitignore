@@ -31,8 +31,10 @@ pnpm-debug.log*
 # Test coverage
 coverage/
 
-# Personal notes
-.claude/ideas.md
+# Agent/AI local dirs
+.claude/
+.codex/
+.sweezlab/
 
 # Misc
 *.tsbuildinfo
