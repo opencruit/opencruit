@@ -1,0 +1,28 @@
+{
+  "results": [
+    {
+      "id": "123",
+      "title": "Senior Backend Engineer",
+      "description": "Build distributed systems",
+      "redirect_url": "https://example.com/adzuna/123",
+      "created": "2026-02-20T10:00:00Z",
+      "salary_min": 120000,
+      "salary_max": 160000,
+      "salary_currency": "USD",
+      "category": { "label": "IT Jobs" },
+      "company": { "display_name": "Acme" },
+      "location": { "display_name": "Remote, US" }
+    },
+    {
+      "id": "124",
+      "title": "Sales Manager",
+      "description": "Lead sales team",
+      "redirect_url": "https://example.com/adzuna/124",
+      "created": "2026-02-20T10:00:00Z",
+      "category": { "label": "Sales" },
+      "company": { "display_name": "Acme" },
+      "location": { "display_name": "New York, US" }
+    }
+  ],
+  "count": 2
+}

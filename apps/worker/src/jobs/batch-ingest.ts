@@ -21,7 +21,7 @@ export async function handleBatchIngestJob(
   }
 
   const parser = source.parser;
-  const parsed = await parser.parse();
+  const parsed = await parser.parse(source.resolveParseConfig?.());
   const ingestionLogger = createIngestionLogger(
     deps.logger.child({
       queue: 'source.ingest',

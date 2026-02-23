@@ -1,0 +1,37 @@
+{
+  "offset": 0,
+  "limit": 100,
+  "totalFound": 2,
+  "content": [
+    {
+      "id": "3001",
+      "name": "Senior Data Engineer",
+      "ref": "https://api.smartrecruiters.com/v1/companies/demo/postings/3001",
+      "releasedDate": "2026-02-15T09:00:00.000Z",
+      "location": {
+        "city": "Remote",
+        "region": "",
+        "country": "us",
+        "fullLocation": "Remote, United States"
+      },
+      "department": { "label": "Engineering" },
+      "function": { "label": "Data" },
+      "typeOfEmployment": { "label": "Full-time" }
+    },
+    {
+      "id": "3002",
+      "name": "Customer Success Manager",
+      "ref": "https://api.smartrecruiters.com/v1/companies/demo/postings/3002",
+      "releasedDate": "2026-02-15T09:00:00.000Z",
+      "location": {
+        "city": "Boston",
+        "region": "MA",
+        "country": "us",
+        "fullLocation": "Boston, MA, United States"
+      },
+      "department": { "label": "Customer Success" },
+      "function": { "label": "CS" },
+      "typeOfEmployment": { "label": "Full-time" }
+    }
+  ]
+}

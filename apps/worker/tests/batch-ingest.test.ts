@@ -64,6 +64,9 @@ describe('handleBatchIngestJob', () => {
         attempts: 3,
         backoffMs: 5000,
       },
+      resolveParseConfig: () => ({
+        country: 'us',
+      }),
       parser: {
         manifest: {
           id: 'remoteok',
@@ -98,7 +101,9 @@ describe('handleBatchIngestJob', () => {
     const result = await handleBatchIngestJob(job, { db, logger: createLoggerMock() });
 
     expect(getSourceByIdMock).toHaveBeenCalledWith('remoteok');
-    expect(parse).toHaveBeenCalledTimes(1);
+    expect(parse).toHaveBeenCalledWith({
+      country: 'us',
+    });
     expect(ingestBatchMock).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({

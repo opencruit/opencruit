@@ -1,0 +1,24 @@
+{
+  "jobs": [
+    {
+      "id": "j1",
+      "title": "Frontend Developer",
+      "link": "https://example.com/jooble/j1",
+      "company": "Acme",
+      "location": "Berlin, Germany",
+      "snippet": "Work on web applications",
+      "salary": "€60,000 - €80,000",
+      "updated": "2026-02-18T08:00:00Z"
+    },
+    {
+      "id": "j2",
+      "title": "Account Manager",
+      "link": "https://example.com/jooble/j2",
+      "company": "Acme",
+      "location": "Berlin, Germany",
+      "snippet": "Client management",
+      "updated": "2026-02-18T08:00:00Z"
+    }
+  ],
+  "totalCount": 2
+}

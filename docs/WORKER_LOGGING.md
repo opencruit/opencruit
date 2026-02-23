@@ -99,3 +99,9 @@ Unexpected cleanup behavior:
 1. Filter `queue=="source.gc"`.
 2. Inspect `mode`, `sourceId`, `archived`, `deleted`.
 3. Correlate with source policy in `apps/worker/src/jobs/source-gc-policy.ts`.
+
+HH hydrate backlog pressure:
+
+1. Filter `queue=="hh.index"` and `event=="job_completed"`.
+2. Check `skippedDueToBacklog`, `hydrateBacklog`, `backlogLimit`.
+3. If skips persist, pause bootstrap and/or increase hydrate throughput.

@@ -46,6 +46,13 @@ Force one manual ingest run for selected sources:
 docker compose exec -T worker pnpm exec tsx /app/scripts/ops/enqueue-batch.ts remoteok weworkremotely
 ```
 
+Full dev reset (wipe Postgres + Redis volumes and start from clean state):
+
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
 ## Healthy state checklist
 
 A healthy stack means:
@@ -69,3 +76,8 @@ Watch for:
 - frequent `job_failed` in worker logs,
 - repeated non-zero `consecutive_failures` in `source_health`,
 - sudden drop of total jobs/source jobs.
+
+HH queue pressure controls:
+
+- `HH_BOOTSTRAP_INDEX_NOW=false` avoids full HH bootstrap on every worker restart.
+- `HH_HYDRATE_MAX_BACKLOG=5000` enables index backpressure when hydrate queue is overloaded.

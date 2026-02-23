@@ -1,0 +1,17 @@
+{
+  "id": "3001",
+  "postingUrl": "https://jobs.smartrecruiters.com/demo/3001",
+  "applyUrl": "https://jobs.smartrecruiters.com/demo/3001/apply",
+  "jobAd": {
+    "sections": {
+      "jobDescription": {
+        "title": "Job Description",
+        "text": "<p>Build scalable data pipelines</p>"
+      },
+      "qualifications": {
+        "title": "Qualifications",
+        "text": "<p>Strong SQL and distributed systems experience</p>"
+      }
+    }
+  }
+}

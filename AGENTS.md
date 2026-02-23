@@ -41,6 +41,11 @@ packages/
     arbeitnow/                # @opencruit/parser-arbeitnow — Arbeitnow API parser
     jobicy/                   # @opencruit/parser-jobicy — Jobicy API parser
     himalayas/                # @opencruit/parser-himalayas — Himalayas API parser
+    adzuna/                   # @opencruit/parser-adzuna — Adzuna API parser
+    jooble/                   # @opencruit/parser-jooble — Jooble API parser
+    greenhouse/               # @opencruit/parser-greenhouse — Greenhouse job board parser
+    lever/                    # @opencruit/parser-lever — Lever postings parser
+    smartrecruiters/          # @opencruit/parser-smartrecruiters — SmartRecruiters postings parser
 ```
 
 ## Commands
@@ -57,6 +62,9 @@ pnpm dev                      # Dev mode
 pnpm worker                   # Run BullMQ worker (source.ingest + hh.* + source.gc)
 pnpm stack:bootstrap          # Build/start full docker stack + healthcheck
 pnpm stack:health             # Validate docker stack health
+pnpm stack:logs              # Tail worker/web logs from docker stack
+pnpm stack:report            # Print source health/status report from worker container
+pnpm stack:ingest:once       # Enqueue one-off source.ingest jobs in docker stack
 pnpm stack:down               # Stop docker stack
 ```
 
@@ -108,20 +116,22 @@ Not microservices. Two app processes + two infra. One codebase.
 - **Web** (SvelteKit) — UI, SSR, API routes, search, auth
 - **Worker** (BullMQ consumer) — parser jobs, ingestion pipeline, background tasks
 - **PostgreSQL** — primary storage, full-text search (tsvector)
-- **Redis** — BullMQ queues, Streams (events), cache
+- **Redis** — BullMQ queues
 - Deploy: `docker compose up` — 4 long-running containers (`postgres`, `redis`, `worker`, `web`) + 1 one-shot migration container (`migrate`)
 
 ### Parser System
 
 - Parsers are npm packages imported by worker — not HTTP services, not separate containers
-- Batch parsers implement `Parser` from `@opencruit/parser-sdk` via `defineParser` (RemoteOK, WWR, Remotive, Arbeitnow, Jobicy, Himalayas)
+- Batch parsers implement `Parser` from `@opencruit/parser-sdk` via `defineParser` (RemoteOK, WWR, Remotive, Arbeitnow, Jobicy, Himalayas, Adzuna, Jooble, Greenhouse, Lever, SmartRecruiters)
 - Sources are registered in worker source catalog via `defineSource` (batch + workflow)
 - Batch sources are orchestrated by worker job `source.ingest` (schedule override via `SOURCE_SCHEDULE_<SOURCE_ID>`)
+- Source-level requirements are validated in scheduler (`requiredEnv`, `enabledWhen`); misconfigured sources are disabled without breaking other sources
+- ATS target lists are kept in worker TS modules under `apps/worker/src/sources/targets/*`
 - HH integration uses workflow source contract and 3-phase jobs (`hh.index`, `hh.hydrate`, `hh.refresh`) via `@opencruit/parser-hh` helpers
 - Lifecycle cleanup is handled by generic worker job `source.gc` with per-source retention policy
 - Worker emits structured JSON logs (pino) via worker lifecycle hooks (`active`, `completed`, `failed`) with `traceId` propagation
 - Worker persists per-source runtime health in PostgreSQL `source_health` (`last_success_at`, `last_error_at`, `consecutive_failures`)
-- Light parsers (API/HTML) in one worker pool, Playwright parsers in heavy pool (when needed)
+- Source definitions include pool hint (`light` | `heavy`) for future heavy parsers; current worker runtime uses single process concurrency
 - Ingestion pipeline: validate → normalize → fingerprint → deduplicate → store
 - Deduplication: fingerprint (sha256 of company+title+location) with first-source-wins conflict policy
 

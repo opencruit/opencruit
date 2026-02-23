@@ -73,6 +73,24 @@ function readIntEnv(name: string, fallback: number): number {
   return Math.floor(parsed);
 }
 
+function readBoolEnv(name: string, fallback: boolean): boolean {
+  const raw = process.env[name];
+  if (!raw) {
+    return fallback;
+  }
+
+  const normalized = raw.trim().toLowerCase();
+  if (normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on') {
+    return true;
+  }
+
+  if (normalized === '0' || normalized === 'false' || normalized === 'no' || normalized === 'off') {
+    return false;
+  }
+
+  return fallback;
+}
+
 async function closeDbConnection(db: Database | null): Promise<void> {
   if (!db) {
     return;
@@ -107,6 +125,8 @@ async function run(): Promise<void> {
   const databaseUrl = readRequiredEnv('DATABASE_URL');
   const redisUrl = process.env.REDIS_URL ?? DEFAULT_REDIS_URL;
   const hhUserAgent = process.env.HH_USER_AGENT ?? DEFAULT_HH_USER_AGENT;
+  const hhBootstrapIndexNow = readBoolEnv('HH_BOOTSTRAP_INDEX_NOW', false);
+  const hhHydrateMaxBacklog = readIntEnv('HH_HYDRATE_MAX_BACKLOG', 5000);
 
   const db = createDatabase(databaseUrl);
   runtimeState.db = db;
@@ -194,6 +214,7 @@ async function run(): Promise<void> {
         db,
         hydrateQueue: queues.hydrateQueue,
         indexQueue: queues.indexQueue,
+        maxHydrateBacklog: hhHydrateMaxBacklog,
       }),
     {
       stage: 'index',
@@ -211,6 +232,9 @@ async function run(): Promise<void> {
         pagesFetched: result.pagesFetched,
         enqueued: result.enqueued,
         split: result.split,
+        skippedDueToBacklog: result.skippedDueToBacklog ?? false,
+        hydrateBacklog: result.hydrateBacklog,
+        backlogLimit: result.backlogLimit,
       }),
     },
   );
@@ -299,14 +323,19 @@ async function run(): Promise<void> {
     });
   }
 
-  const schedulerResult = await scheduleAllSources(queues, hhClient);
+  const schedulerResult = await scheduleAllSources(queues, hhClient, {
+    bootstrapIndexNow: hhBootstrapIndexNow,
+  });
   if (schedulerResult.workflowErrors.length === 0 && schedulerResult.batchErrors.length === 0) {
     logger.info(
       {
         event: 'scheduler_configured',
         scheduledBatchSources: schedulerResult.scheduledBatchSources,
         scheduledWorkflowSources: schedulerResult.scheduledWorkflowSources,
+        disabledSources: schedulerResult.disabledSources,
         workflowStats: schedulerResult.workflowStats,
+        hhBootstrapIndexNow,
+        hhHydrateMaxBacklog,
       },
       'Scheduler configured',
     );
@@ -316,9 +345,12 @@ async function run(): Promise<void> {
         event: 'scheduler_partially_configured',
         scheduledBatchSources: schedulerResult.scheduledBatchSources,
         scheduledWorkflowSources: schedulerResult.scheduledWorkflowSources,
+        disabledSources: schedulerResult.disabledSources,
         batchErrors: schedulerResult.batchErrors,
         workflowErrors: schedulerResult.workflowErrors,
         workflowStats: schedulerResult.workflowStats,
+        hhBootstrapIndexNow,
+        hhHydrateMaxBacklog,
       },
       'Scheduler partially configured: source scheduling failed',
     );

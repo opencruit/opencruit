@@ -79,6 +79,7 @@ describe('scheduleAllSources', () => {
     });
 
     expect(result.batchErrors).toEqual([]);
+    expect(result.disabledSources).toEqual([]);
     expect(result.workflowErrors).toEqual([]);
     expect(result.scheduledBatchSources).toBe(1);
     expect(result.scheduledWorkflowSources).toBe(1);
@@ -141,6 +142,7 @@ describe('scheduleAllSources', () => {
     const result = await scheduleAllSources(queues, hhClient);
 
     expect(result.batchErrors).toEqual([]);
+    expect(result.disabledSources).toEqual([]);
     expect(result.scheduledBatchSources).toBe(1);
     expect(result.scheduledWorkflowSources).toBe(0);
     expect(result.workflowErrors).toEqual([
@@ -217,6 +219,7 @@ describe('scheduleAllSources', () => {
     const result = await scheduleAllSources(queues, hhClient);
 
     expect(result.scheduledBatchSources).toBe(1);
+    expect(result.disabledSources).toEqual([]);
     expect(result.batchErrors).toEqual([
       {
         sourceId: 'remoteok',
@@ -228,5 +231,64 @@ describe('scheduleAllSources', () => {
     expect(vi.mocked(queues.sourceIngestQueue.add)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(queues.sourceGcQueue.add)).toHaveBeenCalledTimes(2);
     expect(setupScheduler).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables batch source when required env is missing', async () => {
+    const setupScheduler = vi.fn().mockResolvedValue({});
+
+    getBatchSourcesMock.mockReturnValue([
+      {
+        id: 'adzuna',
+        kind: 'batch',
+        pool: 'light',
+        runtime: {
+          attempts: 3,
+          backoffMs: 5000,
+        },
+        requiredEnv: ['ADZUNA_APP_ID', 'ADZUNA_APP_KEY'],
+        parser: {
+          manifest: {
+            id: 'adzuna',
+            name: 'Adzuna',
+            version: '0.1.0',
+            schedule: '0 */6 * * *',
+          },
+          parse: vi.fn(),
+        },
+      },
+    ]);
+
+    getWorkflowSourcesMock.mockReturnValue([
+      {
+        id: 'hh',
+        kind: 'workflow',
+        pool: 'light',
+        runtime: {
+          attempts: 4,
+          backoffMs: 5000,
+        },
+        setupScheduler,
+      },
+    ]);
+
+    delete process.env.ADZUNA_APP_ID;
+    delete process.env.ADZUNA_APP_KEY;
+
+    const queues = createQueuesMock();
+    const hhClient = stub<HhClient>({});
+
+    const result = await scheduleAllSources(queues, hhClient);
+
+    expect(result.scheduledBatchSources).toBe(0);
+    expect(result.batchErrors).toEqual([]);
+    expect(result.disabledSources).toEqual([
+      {
+        sourceId: 'adzuna',
+        reason: 'Missing required environment variables: ADZUNA_APP_ID, ADZUNA_APP_KEY',
+      },
+    ]);
+    expect(result.scheduledWorkflowSources).toBe(1);
+    expect(vi.mocked(queues.sourceIngestQueue.add)).not.toHaveBeenCalled();
+    expect(vi.mocked(queues.sourceGcQueue.add)).toHaveBeenCalledTimes(2);
   });
 });

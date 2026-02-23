@@ -47,7 +47,10 @@ function createSearchResponse(): HhSearchResponse {
 describe('handleHhIndexJob trace propagation', () => {
   it('forwards trace id to hydrate jobs', async () => {
     const { db } = createDbMock();
-    const hydrateQueue = stub<Queue<HhHydrateJobData>>({ add: vi.fn().mockResolvedValue(undefined) });
+    const hydrateQueue = stub<Queue<HhHydrateJobData>>({
+      add: vi.fn().mockResolvedValue(undefined),
+      getJobCounts: vi.fn().mockResolvedValue({ wait: 0, active: 0, delayed: 0 }),
+    });
     const indexQueue = stub<Queue<HhIndexJobData>>({ add: vi.fn().mockResolvedValue(undefined) });
     const client = stub<HhClient>({
       searchVacancies: vi.fn().mockResolvedValue(createSearchResponse()),
@@ -66,6 +69,7 @@ describe('handleHhIndexJob trace propagation', () => {
       db,
       hydrateQueue,
       indexQueue,
+      maxHydrateBacklog: 5000,
     });
 
     expect(result.split).toBe(false);

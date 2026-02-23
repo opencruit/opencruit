@@ -19,6 +19,7 @@ export interface HhIndexJobDeps {
   db: Database;
   hydrateQueue: Queue<HhHydrateJobData>;
   indexQueue: Queue<HhIndexJobData>;
+  maxHydrateBacklog: number;
 }
 
 export interface HhIndexResult {
@@ -26,6 +27,9 @@ export interface HhIndexResult {
   pagesFetched: number;
   enqueued: number;
   split: boolean;
+  skippedDueToBacklog?: boolean;
+  hydrateBacklog?: number;
+  backlogLimit?: number;
 }
 
 function roleCursorKey(professionalRole: string): string {
@@ -182,9 +186,27 @@ async function enqueueHydrateItems(
   return enqueued;
 }
 
+async function getHydrateBacklog(hydrateQueue: Queue<HhHydrateJobData>): Promise<number> {
+  const counts = await hydrateQueue.getJobCounts('wait', 'active', 'delayed');
+  return (counts.wait ?? 0) + (counts.active ?? 0) + (counts.delayed ?? 0);
+}
+
 export async function handleHhIndexJob(job: Job<HhIndexJobData>, deps: HhIndexJobDeps): Promise<HhIndexResult> {
   const traceId = withTrace(job);
   const depth = job.data.depth ?? 0;
+  const initialHydrateBacklog = await getHydrateBacklog(deps.hydrateQueue);
+  if (initialHydrateBacklog >= deps.maxHydrateBacklog) {
+    return {
+      found: 0,
+      pagesFetched: 0,
+      enqueued: 0,
+      split: false,
+      skippedDueToBacklog: true,
+      hydrateBacklog: initialHydrateBacklog,
+      backlogLimit: deps.maxHydrateBacklog,
+    };
+  }
+
   const slice = await resolveWindow(job.data, deps.db);
   const segmentKey = buildSegmentKey(job.data.professionalRole, slice);
 
@@ -247,10 +269,24 @@ export async function handleHhIndexJob(job: Job<HhIndexJobData>, deps: HhIndexJo
     };
   }
 
-  const pagesToFetch = Math.min(page0.pages, MAX_PAGE_DEPTH);
+  const pagesToFetch = Math.max(1, Math.min(page0.pages, MAX_PAGE_DEPTH));
   let enqueued = await enqueueHydrateItems(page0.items, deps.hydrateQueue, 'new', traceId);
+  let pagesFetched = 1;
 
   for (let page = 1; page < pagesToFetch; page += 1) {
+    const hydrateBacklog = await getHydrateBacklog(deps.hydrateQueue);
+    if (hydrateBacklog >= deps.maxHydrateBacklog) {
+      return {
+        found: page0.found,
+        pagesFetched,
+        enqueued,
+        split: false,
+        skippedDueToBacklog: true,
+        hydrateBacklog,
+        backlogLimit: deps.maxHydrateBacklog,
+      };
+    }
+
     const response = await deps.client.searchVacancies({
       professionalRole: job.data.professionalRole,
       dateFrom: slice.dateFromIso,
@@ -259,6 +295,7 @@ export async function handleHhIndexJob(job: Job<HhIndexJobData>, deps: HhIndexJo
       perPage: PER_PAGE,
     });
 
+    pagesFetched += 1;
     enqueued += await enqueueHydrateItems(response.items, deps.hydrateQueue, 'new', traceId);
   }
 
@@ -274,7 +311,7 @@ export async function handleHhIndexJob(job: Job<HhIndexJobData>, deps: HhIndexJo
     },
     {
       found: page0.found,
-      pagesFetched: pagesToFetch,
+      pagesFetched,
       enqueued,
       split: false,
     },
@@ -282,7 +319,7 @@ export async function handleHhIndexJob(job: Job<HhIndexJobData>, deps: HhIndexJo
 
   return {
     found: page0.found,
-    pagesFetched: pagesToFetch,
+    pagesFetched,
     enqueued,
     split: false,
   };

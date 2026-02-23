@@ -8,6 +8,15 @@
     { "path": "packages/parsers/hh" },
     { "path": "packages/parsers/remoteok" },
     { "path": "packages/parsers/weworkremotely" },
+    { "path": "packages/parsers/remotive" },
+    { "path": "packages/parsers/arbeitnow" },
+    { "path": "packages/parsers/jobicy" },
+    { "path": "packages/parsers/himalayas" },
+    { "path": "packages/parsers/adzuna" },
+    { "path": "packages/parsers/jooble" },
+    { "path": "packages/parsers/greenhouse" },
+    { "path": "packages/parsers/lever" },
+    { "path": "packages/parsers/smartrecruiters" },
     { "path": "apps/worker" },
     { "path": "apps/web" }
   ]

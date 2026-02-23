@@ -1,0 +1,28 @@
+[
+  {
+    "id": "2001",
+    "text": "Platform Engineer",
+    "hostedUrl": "https://jobs.lever.co/company/2001",
+    "applyUrl": "https://jobs.lever.co/company/2001/apply",
+    "createdAt": 1771190400000,
+    "descriptionPlain": "Build cloud platform",
+    "categories": {
+      "location": "Remote",
+      "team": "Engineering",
+      "commitment": "Full-time"
+    },
+    "workplaceType": "remote"
+  },
+  {
+    "id": "2002",
+    "text": "Operations Specialist",
+    "hostedUrl": "https://jobs.lever.co/company/2002",
+    "createdAt": 1771190400000,
+    "descriptionPlain": "Operate processes",
+    "categories": {
+      "location": "New York",
+      "team": "Operations",
+      "commitment": "Full-time"
+    }
+  }
+]

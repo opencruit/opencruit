@@ -48,6 +48,7 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 - Ops helper scripts:
   - `scripts/ops/bootstrap.sh`
   - `scripts/ops/healthcheck.sh`
+  - `scripts/ops/down.sh`
   - `scripts/ops/enqueue-batch.ts`
   - `scripts/ops/source-report.ts`
 
@@ -61,12 +62,30 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 ### Unified Orchestration
 
 - Worker is the only production orchestrator for source polling and lifecycle jobs
-- `source.ingest` runs batch sources from worker source catalog (`remoteok`, `weworkremotely`, `remotive`, `arbeitnow`, `jobicy`, `himalayas`)
+- `source.ingest` runs batch sources from worker source catalog (`remoteok`, `weworkremotely`, `remotive`, `arbeitnow`, `jobicy`, `himalayas`, `adzuna`, `jooble`, `greenhouse`, `lever`, `smartrecruiters`)
 - Source schedule is resolved by worker config/env (`SOURCE_SCHEDULE_<SOURCE_ID>`) with fallback to source or parser manifest schedule
+- Scheduler validates source requirements (`requiredEnv`, `enabledWhen`) before enqueueing repeatable jobs
+- Misconfigured sources are marked disabled and skipped without blocking healthy sources
 - Scheduler isolates per-source setup failures; one broken source does not block scheduling for others
 - Worker source catalog is the single source-of-truth for batch and workflow sources
 - `@opencruit/ingestion` is a pure processing library (no parser imports, no CLI path)
 - `source.gc` applies archive/delete retention for all sources using per-source policy defaults
+
+### Source Config
+
+- Secrets are provided via environment variables:
+  - `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`
+  - `JOOBLE_API_KEY`
+- Optional source-country controls:
+  - `ADZUNA_COUNTRIES` (default: `us,gb,de,nl,pl`)
+  - `JOOBLE_COUNTRIES` (default: `us,gb,de,nl,pl`)
+- Optional HH runtime controls:
+  - `HH_BOOTSTRAP_INDEX_NOW` (default: `false`)
+  - `HH_HYDRATE_MAX_BACKLOG` (default: `5000`)
+- ATS company/board target lists are kept in worker TS files:
+  - `apps/worker/src/sources/targets/greenhouse.ts`
+  - `apps/worker/src/sources/targets/lever.ts`
+  - `apps/worker/src/sources/targets/smartrecruiters.ts`
 
 ### Worker Debug Observability v1
 
@@ -87,6 +106,8 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 - Calls `GET /vacancies` by IT professional role + time window
 - Handles HH 2000-result depth limit by recursive time-splitting
 - Enqueues vacancy ids to `hh.hydrate`
+- Applies backpressure: skips enqueue when `hh.hydrate` backlog reaches `HH_HYDRATE_MAX_BACKLOG`
+- Does not advance role cursor when skipped due to backlog (prevents data loss)
 
 2. `hh.hydrate`
 - Calls `GET /vacancies/{id}`
@@ -176,6 +197,11 @@ Used for durable operational visibility beyond ephemeral logs.
 - `arbeitnow`: archive after 21 days, archived recheck in 30 days, delete archived/missing after 90 days
 - `jobicy`: archive after 30 days, archived recheck in 45 days, delete archived/missing after 120 days
 - `himalayas`: archive after 14 days, archived recheck in 30 days, delete archived/missing after 90 days
+- `adzuna`: archive after 21 days, archived recheck in 30 days, delete archived/missing after 90 days
+- `jooble`: archive after 21 days, archived recheck in 30 days, delete archived/missing after 90 days
+- `greenhouse`: archive after 14 days, archived recheck in 30 days, delete archived/missing after 90 days
+- `lever`: archive after 14 days, archived recheck in 30 days, delete archived/missing after 90 days
+- `smartrecruiters`: archive after 14 days, archived recheck in 30 days, delete archived/missing after 90 days
 - unknown source fallback: archive 14 days, archived recheck in 30 days, delete archived/missing after 90 days
 
 ## Implementation Status
@@ -206,4 +232,9 @@ packages/
     arbeitnow/                # @opencruit/parser-arbeitnow
     jobicy/                   # @opencruit/parser-jobicy
     himalayas/                # @opencruit/parser-himalayas
+    adzuna/                   # @opencruit/parser-adzuna
+    jooble/                   # @opencruit/parser-jooble
+    greenhouse/               # @opencruit/parser-greenhouse
+    lever/                    # @opencruit/parser-lever
+    smartrecruiters/          # @opencruit/parser-smartrecruiters
 ```

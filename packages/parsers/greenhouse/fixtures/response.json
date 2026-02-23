@@ -1,0 +1,28 @@
+{
+  "jobs": [
+    {
+      "id": 1001,
+      "title": "Software Engineer",
+      "absolute_url": "https://boards.greenhouse.io/company/jobs/1001",
+      "location": { "name": "Remote, US" },
+      "updated_at": "2026-02-19T10:00:00Z",
+      "company_name": "Demo Co",
+      "metadata": [
+        { "id": 1, "name": "Department", "value": "Engineering" }
+      ],
+      "content": "<p>Build platform systems</p>"
+    },
+    {
+      "id": 1002,
+      "title": "Marketing Manager",
+      "absolute_url": "https://boards.greenhouse.io/company/jobs/1002",
+      "location": { "name": "San Francisco, US" },
+      "updated_at": "2026-02-19T10:00:00Z",
+      "company_name": "Demo Co",
+      "metadata": [
+        { "id": 2, "name": "Department", "value": "Marketing" }
+      ],
+      "content": "<p>Run campaigns</p>"
+    }
+  ]
+}

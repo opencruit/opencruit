@@ -8,6 +8,11 @@ describe('source catalog', () => {
 
     expect(ids).toContain('remoteok');
     expect(ids).toContain('weworkremotely');
+    expect(ids).toContain('adzuna');
+    expect(ids).toContain('jooble');
+    expect(ids).toContain('greenhouse');
+    expect(ids).toContain('lever');
+    expect(ids).toContain('smartrecruiters');
     expect(ids).toContain('hh');
     expect(new Set(ids).size).toBe(ids.length);
 

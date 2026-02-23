@@ -5,6 +5,11 @@ export type SourceKind = 'batch' | 'workflow';
 export type SourcePool = 'light' | 'heavy';
 export type SourceStage = 'ingest' | 'index' | 'hydrate' | 'refresh' | 'gc';
 
+export interface SourceEnableResult {
+  enabled: boolean;
+  reason?: string;
+}
+
 export interface SourceRuntimePolicy {
   attempts: number;
   backoffMs: number;
@@ -23,6 +28,9 @@ interface BaseSourceDefinition {
 export interface BatchSourceDefinition extends BaseSourceDefinition {
   kind: 'batch';
   parser: Parser;
+  requiredEnv?: string[];
+  enabledWhen?: () => SourceEnableResult;
+  resolveParseConfig?: () => Record<string, unknown> | undefined;
 }
 
 export interface WorkflowScheduleOptions {

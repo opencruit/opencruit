@@ -21,6 +21,10 @@ export interface SchedulerOptions {
 export interface SchedulerResult {
   scheduledBatchSources: number;
   scheduledWorkflowSources: number;
+  disabledSources: Array<{
+    sourceId: string;
+    reason: string;
+  }>;
   batchErrors: Array<{
     sourceId: string;
     error: string;
@@ -61,6 +65,32 @@ function resolveSourceSchedule(
   }
 
   throw new Error(`Source ${source.id} has no schedule configured`);
+}
+
+function validateBatchSource(source: BatchSourceDefinition): { enabled: boolean; reason?: string } {
+  const requiredEnv = source.requiredEnv ?? [];
+  const missingEnv = requiredEnv.filter((name) => {
+    const value = process.env[name]?.trim();
+    return !value;
+  });
+  if (missingEnv.length > 0) {
+    return {
+      enabled: false,
+      reason: `Missing required environment variables: ${missingEnv.join(', ')}`,
+    };
+  }
+
+  if (source.enabledWhen) {
+    const result = source.enabledWhen();
+    if (!result.enabled) {
+      return {
+        enabled: false,
+        reason: result.reason ?? 'Source disabled by source policy',
+      };
+    }
+  }
+
+  return { enabled: true };
 }
 
 async function scheduleSourceGcJobs(queues: Queues, gcArchiveCron: string, gcDeleteCron: string): Promise<void> {
@@ -118,10 +148,20 @@ export async function scheduleAllSources(
   const batchSources = getBatchSources();
   const workflowSources = getWorkflowSources();
   let scheduledBatchSources = 0;
+  const disabledSources: Array<{ sourceId: string; reason: string }> = [];
   const batchErrors: Array<{ sourceId: string; error: string }> = [];
 
   for (const source of batchSources) {
     try {
+      const sourceStatus = validateBatchSource(source);
+      if (!sourceStatus.enabled) {
+        disabledSources.push({
+          sourceId: source.id,
+          reason: sourceStatus.reason ?? 'Source disabled',
+        });
+        continue;
+      }
+
       const schedule = resolveSourceSchedule(source, options.sourceSchedules);
 
       await queues.sourceIngestQueue.add(
@@ -187,6 +227,7 @@ export async function scheduleAllSources(
   return {
     scheduledBatchSources,
     scheduledWorkflowSources,
+    disabledSources,
     batchErrors,
     workflowErrors,
     workflowStats,

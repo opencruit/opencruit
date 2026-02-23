@@ -5,6 +5,11 @@ import { remotiveSource } from './batch/remotive-source.js';
 import { arbeitnowSource } from './batch/arbeitnow-source.js';
 import { jobicySource } from './batch/jobicy-source.js';
 import { himalayasSource } from './batch/himalayas-source.js';
+import { adzunaSource } from './batch/adzuna-source.js';
+import { joobleSource } from './batch/jooble-source.js';
+import { greenhouseSource } from './batch/greenhouse-source.js';
+import { leverSource } from './batch/lever-source.js';
+import { smartrecruitersSource } from './batch/smartrecruiters-source.js';
 import { hhSource } from './workflow/hh-source.js';
 
 const allSources: SourceDefinition[] = [
@@ -14,6 +19,11 @@ const allSources: SourceDefinition[] = [
   arbeitnowSource,
   jobicySource,
   himalayasSource,
+  adzunaSource,
+  joobleSource,
+  greenhouseSource,
+  leverSource,
+  smartrecruitersSource,
   hhSource,
 ];
 

@@ -31,6 +31,16 @@ const SOURCE_POLICIES: Record<string, SourceGcPolicy> = {
     archivedRecheckDays: 30,
     deleteAfterDays: 60,
   },
+  adzuna: {
+    archiveAfterDays: 21,
+    archivedRecheckDays: 30,
+    deleteAfterDays: 90,
+  },
+  jooble: {
+    archiveAfterDays: 21,
+    archivedRecheckDays: 30,
+    deleteAfterDays: 90,
+  },
   arbeitnow: {
     archiveAfterDays: 21,
     archivedRecheckDays: 30,
@@ -42,6 +52,21 @@ const SOURCE_POLICIES: Record<string, SourceGcPolicy> = {
     deleteAfterDays: 120,
   },
   himalayas: {
+    archiveAfterDays: 14,
+    archivedRecheckDays: 30,
+    deleteAfterDays: 90,
+  },
+  greenhouse: {
+    archiveAfterDays: 14,
+    archivedRecheckDays: 30,
+    deleteAfterDays: 90,
+  },
+  lever: {
+    archiveAfterDays: 14,
+    archivedRecheckDays: 30,
+    deleteAfterDays: 90,
+  },
+  smartrecruiters: {
     archiveAfterDays: 14,
     archivedRecheckDays: 30,
     deleteAfterDays: 90,
