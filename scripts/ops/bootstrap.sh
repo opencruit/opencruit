@@ -8,7 +8,7 @@ require_cmd docker
 
 cd_root
 
-log 'Building images and starting full stack (postgres, redis, migrate, worker, web)...'
+log 'Building images and starting full stack (postgres, redis, migrate, worker, web, prometheus, grafana)...'
 docker compose up -d --build
 
 log 'Waiting for web on http://localhost:3000 ...'
@@ -22,5 +22,11 @@ done
 
 log 'Running healthcheck...'
 bash "$ROOT_DIR/scripts/ops/healthcheck.sh"
+
+log 'Service URLs:'
+log '  Web:        http://localhost:3000'
+log '  Worker:     http://localhost:9464/metrics'
+log '  Prometheus: http://localhost:9090'
+log '  Grafana:    http://localhost:3001 (admin/admin by default)'
 
 log 'Bootstrap completed.'

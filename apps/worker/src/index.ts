@@ -24,6 +24,7 @@ import {
 import { createRedisConnection } from './redis.js';
 import { scheduleAllSources } from './scheduler.js';
 import { createWorkerLogger } from './observability/logger.js';
+import { startMetricsServer, type MetricsServerHandle } from './observability/metrics-server.js';
 import {
   attachWorkerTelemetry,
   isSourceHealthAvailable,
@@ -40,6 +41,7 @@ interface RuntimeState {
   queues: Queues | null;
   workers: Array<Worker>;
   telemetryHandles: WorkerTelemetryHandle[];
+  metricsHandle: MetricsServerHandle | null;
 }
 
 const runtimeState: RuntimeState = {
@@ -48,6 +50,7 @@ const runtimeState: RuntimeState = {
   queues: null,
   workers: [],
   telemetryHandles: [],
+  metricsHandle: null,
 };
 
 function readRequiredEnv(name: string): string {
@@ -102,6 +105,7 @@ async function closeDbConnection(db: Database | null): Promise<void> {
 async function cleanupRuntimeState(state: RuntimeState): Promise<void> {
   await Promise.allSettled(state.workers.map((worker) => worker.close()));
   await Promise.allSettled(state.telemetryHandles.map((handle) => handle.flush()));
+  await Promise.allSettled([state.metricsHandle?.close()]);
 
   if (state.queues) {
     await Promise.allSettled([
@@ -127,6 +131,9 @@ async function run(): Promise<void> {
   const hhUserAgent = process.env.HH_USER_AGENT ?? DEFAULT_HH_USER_AGENT;
   const hhBootstrapIndexNow = readBoolEnv('HH_BOOTSTRAP_INDEX_NOW', false);
   const hhHydrateMaxBacklog = readIntEnv('HH_HYDRATE_MAX_BACKLOG', 5000);
+  const workerMetricsEnabled = readBoolEnv('WORKER_METRICS_ENABLED', true);
+  const workerMetricsHost = process.env.WORKER_METRICS_HOST?.trim() || '0.0.0.0';
+  const workerMetricsPort = readIntEnv('WORKER_METRICS_PORT', 9464);
 
   const db = createDatabase(databaseUrl);
   runtimeState.db = db;
@@ -310,6 +317,25 @@ async function run(): Promise<void> {
   const workers = [sourceIngestWorker, indexWorker, hydrateWorker, refreshWorker, gcWorker];
   runtimeState.workers.push(...workers);
 
+  if (workerMetricsEnabled) {
+    const metricsHandle = startMetricsServer({
+      host: workerMetricsHost,
+      port: workerMetricsPort,
+      logger,
+      db,
+      queues,
+      sourceHealthEnabled,
+    });
+    runtimeState.metricsHandle = metricsHandle;
+  } else {
+    logger.info(
+      {
+        event: 'worker_metrics_disabled',
+      },
+      'Worker metrics endpoint is disabled by configuration',
+    );
+  }
+
   for (const worker of workers) {
     worker.on('error', (error) => {
       logger.error(
@@ -336,6 +362,9 @@ async function run(): Promise<void> {
         workflowStats: schedulerResult.workflowStats,
         hhBootstrapIndexNow,
         hhHydrateMaxBacklog,
+        workerMetricsEnabled,
+        workerMetricsHost,
+        workerMetricsPort,
       },
       'Scheduler configured',
     );
@@ -351,6 +380,9 @@ async function run(): Promise<void> {
         workflowStats: schedulerResult.workflowStats,
         hhBootstrapIndexNow,
         hhHydrateMaxBacklog,
+        workerMetricsEnabled,
+        workerMetricsHost,
+        workerMetricsPort,
       },
       'Scheduler partially configured: source scheduling failed',
     );

@@ -53,7 +53,12 @@ services:
       LOG_SERVICE_NAME: opencruit-worker
       HH_USER_AGENT: OpenCruit (dev@opencruit.dev)
       HH_ACCESS_TOKEN: ${HH_ACCESS_TOKEN-}
+      WORKER_METRICS_ENABLED: ${WORKER_METRICS_ENABLED-true}
+      WORKER_METRICS_HOST: 0.0.0.0
+      WORKER_METRICS_PORT: 9464
     command: pnpm worker
+    ports:
+      - '9464:9464'
     restart: unless-stopped
 
   web:
@@ -74,6 +79,43 @@ services:
       - '3000:3000'
     restart: unless-stopped
 
+  prometheus:
+    image: prom/prometheus:latest
+    depends_on:
+      worker:
+        condition: service_started
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./infra/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra/observability/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheusdata:/prometheus
+    ports:
+      - '9090:9090'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    depends_on:
+      prometheus:
+        condition: service_started
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD-admin}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./infra/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - '3001:3000'
+    restart: unless-stopped
+
 volumes:
   pgdata:
   redisdata:
+  prometheusdata:
+  grafanadata:

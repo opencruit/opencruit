@@ -2,7 +2,7 @@
 
 ## Architecture — Modular Monolith
 
-Not microservices. Two app processes + two infra services. One codebase, shared modules.
+Not microservices. Two app processes + infra/observability services. One codebase, shared modules.
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -25,25 +25,33 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 │           └────────────┬───────────┘              │
 └────────────────────────┼───────────────────────────┘
                          │
-               ┌─────────┼─────────┐
-               ▼                   ▼
-         ┌──────────┐        ┌──────────┐
-         │ Postgres │        │  Redis   │
-         │ • jobs   │        │ • BullMQ │
-         │ • cursors│        │ • queues │
-         └──────────┘        └──────────┘
+               ┌─────────┼─────────┬───────────────┐
+               ▼                   ▼               ▼
+         ┌──────────┐        ┌──────────┐   ┌────────────┐
+         │ Postgres │        │  Redis   │   │ Prometheus │
+         │ • jobs   │        │ • BullMQ │   │ • metrics  │
+         │ • cursors│        │ • queues │   │ • alerts   │
+         └──────────┘        └──────────┘   └─────┬──────┘
+                                                    │
+                                                    ▼
+                                               ┌─────────┐
+                                               │ Grafana │
+                                               │ • charts│
+                                               └─────────┘
 ```
 
 ### Self-Hosting
 
 - Single `docker compose up -d --build` for full stack
-- Long-running services: `postgres`, `redis`, `worker`, `web`
+- Local hybrid frontend dev uses `docker-compose.dev.yml` to expose Postgres on host (`pnpm dev:infra` + `pnpm dev:web` on `http://localhost:5973`)
+- Long-running services: `postgres`, `redis`, `worker`, `web`, `prometheus`, `grafana`
 - One-shot bootstrap service: `migrate` (`pnpm --filter @opencruit/db db:migrate`)
 - Production schema lifecycle uses versioned SQL migrations in `packages/db/drizzle/*`
 - Local prototyping fallback: `pnpm --filter @opencruit/db db:push`
 - Ops runbooks:
   - `docs/DEPLOYMENT.md`
   - `docs/OPERATIONS.md`
+  - `docs/OBSERVABILITY.md`
   - `docs/TROUBLESHOOTING.md`
 - Ops helper scripts:
   - `scripts/ops/bootstrap.sh`
@@ -93,11 +101,17 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 - Every job emits lifecycle events: `job_started`, `job_completed`, `job_failed`
 - `traceId` is attached to every job payload and propagated to child HH jobs
 - Persistent source health state is stored in PostgreSQL `source_health`
+- Worker exposes Prometheus metrics on `/metrics` (`WORKER_METRICS_PORT`, default `9464`)
+- Prometheus scrapes worker metrics; Grafana is provisioned with a default worker dashboard
+- Observability configs are kept under `infra/observability/*` (Prometheus scrape/rules + Grafana provisioning)
+- PM dashboard is provisioned in Grafana (`OpenCruit PM Overview`) with product KPI gauges from worker metrics
 - Observability is attached through worker event hooks (`active`, `completed`, `failed`), not through handler wrappers
 - `withTrace(job)` is still used in HH fan-out handlers to guarantee trace propagation into child jobs
 - Config:
   - `LOG_LEVEL` (default `info`)
   - `LOG_SERVICE_NAME` (default `opencruit-worker`)
+  - `WORKER_METRICS_ENABLED` (default `true`)
+  - `WORKER_METRICS_PORT` (default `9464`)
 - Debug runbook: `docs/WORKER_LOGGING.md`
 
 ### HH Flow (Step 4)

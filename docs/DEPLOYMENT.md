@@ -11,11 +11,20 @@ This runbook is for a clean server where you want a full stack with one command.
 - `migrate` (one-shot DB migration job)
 - `worker` (parsers + ingestion + GC)
 - `web` (SvelteKit app on `http://localhost:3000`)
+- `prometheus` (metrics + alert rules on `http://localhost:9090`)
+- `grafana` (dashboards on `http://localhost:3001`)
 
 ## Prerequisites
 
 - Docker Engine + Docker Compose plugin
 - Git checkout of this repository
+
+For local hybrid frontend development only (not production), use:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres redis migrate worker
+pnpm dev:web
+```
 
 ## First start (clean server)
 

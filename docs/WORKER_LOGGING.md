@@ -9,6 +9,9 @@ Environment variables:
 
 - `LOG_LEVEL` (`trace|debug|info|warn|error|fatal|silent`, default: `info`)
 - `LOG_SERVICE_NAME` (default: `opencruit-worker`)
+- `WORKER_METRICS_ENABLED` (default: `true`)
+- `WORKER_METRICS_HOST` (default: `0.0.0.0`)
+- `WORKER_METRICS_PORT` (default: `9464`)
 
 ## Event Model
 
@@ -79,6 +82,14 @@ Only HH hydrate failures:
 ```bash
 pnpm worker | jq 'select(.queue=="hh.hydrate" and .event=="job_failed")'
 ```
+
+Metrics endpoint snapshot:
+
+```bash
+curl -fsS 'http://localhost:9464/metrics'
+```
+
+PM metrics are exported with `opencruit_pm_*` prefix (active jobs, new jobs 24h, coverage ratios, source distribution).
 
 ## Practical Debug Flows
 

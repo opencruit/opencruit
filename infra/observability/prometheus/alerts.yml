@@ -1,0 +1,32 @@
+groups:
+  - name: opencruit-worker
+    rules:
+      - alert: OpenCruitSourceFailing
+        expr: opencruit_source_health_failing_total > 0
+        for: 10m
+        labels:
+          severity: warning
+          service: opencruit-worker
+        annotations:
+          summary: 'At least one source stage is failing'
+          description: 'Source health reports failing stages for 10 minutes or longer.'
+
+      - alert: OpenCruitHydrateBacklogHigh
+        expr: sum(opencruit_queue_jobs{queue="hh.hydrate",state=~"wait|active|delayed"}) > 5000
+        for: 15m
+        labels:
+          severity: warning
+          service: opencruit-worker
+        annotations:
+          summary: 'HH hydrate backlog is above configured safety window'
+          description: 'Hydrate queue has been above 5000 jobs for at least 15 minutes.'
+
+      - alert: OpenCruitIngestBacklogHigh
+        expr: sum(opencruit_queue_jobs{queue="source.ingest",state=~"wait|active|delayed"}) > 2000
+        for: 15m
+        labels:
+          severity: warning
+          service: opencruit-worker
+        annotations:
+          summary: 'Batch ingest backlog is high'
+          description: 'source.ingest backlog has stayed above 2000 jobs for 15 minutes.'

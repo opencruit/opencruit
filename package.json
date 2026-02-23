@@ -8,6 +8,9 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:infra": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres redis migrate worker prometheus grafana && docker compose stop web",
+    "dev:web": "DATABASE_URL=${DATABASE_URL:-postgresql://opencruit:opencruit@localhost:5432/opencruit} pnpm --filter @opencruit/web dev",
+    "dev:hybrid": "pnpm dev:infra && pnpm dev:web",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
@@ -18,8 +21,10 @@
     "stack:health": "bash ./scripts/ops/healthcheck.sh",
     "stack:down": "bash ./scripts/ops/down.sh",
     "stack:logs": "docker compose logs -f worker web",
+    "stack:logs:obs": "docker compose logs -f worker prometheus grafana",
     "stack:report": "docker compose exec -T worker pnpm exec tsx /app/scripts/ops/source-report.ts",
-    "stack:ingest:once": "docker compose exec -T worker pnpm exec tsx /app/scripts/ops/enqueue-batch.ts"
+    "stack:ingest:once": "docker compose exec -T worker pnpm exec tsx /app/scripts/ops/enqueue-batch.ts",
+    "stack:metrics": "curl -fsS http://localhost:9464/metrics"
   },
   "devDependencies": {
     "@opencruit/eslint-config": "workspace:*",

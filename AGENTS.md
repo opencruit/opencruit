@@ -59,11 +59,16 @@ pnpm format                   # Prettier write
 pnpm format:check             # Prettier check
 pnpm build                    # Build all packages
 pnpm dev                      # Dev mode
+pnpm dev:infra                # Start local infra for hybrid dev (postgres+redis+migrate+worker+prometheus+grafana) and stop containerized web
+pnpm dev:web                  # Start web Vite dev server (HMR) against localhost Postgres
+pnpm dev:hybrid               # Start infra then run web dev
 pnpm worker                   # Run BullMQ worker (source.ingest + hh.* + source.gc)
 pnpm stack:bootstrap          # Build/start full docker stack + healthcheck
 pnpm stack:health             # Validate docker stack health
-pnpm stack:logs              # Tail worker/web logs from docker stack
-pnpm stack:report            # Print source health/status report from worker container
+pnpm stack:logs               # Tail worker/web logs from docker stack
+pnpm stack:logs:obs           # Tail worker/prometheus/grafana logs from docker stack
+pnpm stack:metrics            # Print worker Prometheus snapshot from localhost
+pnpm stack:report             # Print source health/status report from worker container
 pnpm stack:ingest:once       # Enqueue one-off source.ingest jobs in docker stack
 pnpm stack:down               # Stop docker stack
 ```
@@ -111,13 +116,15 @@ pnpm stack:down               # Stop docker stack
 
 ## Architecture — Modular Monolith
 
-Not microservices. Two app processes + two infra. One codebase.
+Not microservices. Two app processes + infra services. One codebase.
 
 - **Web** (SvelteKit) — UI, SSR, API routes, search, auth
 - **Worker** (BullMQ consumer) — parser jobs, ingestion pipeline, background tasks
 - **PostgreSQL** — primary storage, full-text search (tsvector)
 - **Redis** — BullMQ queues
-- Deploy: `docker compose up` — 4 long-running containers (`postgres`, `redis`, `worker`, `web`) + 1 one-shot migration container (`migrate`)
+- **Prometheus** — metrics scraping + alert rule evaluation
+- **Grafana** — operational dashboards
+- Deploy: `docker compose up` — 6 long-running containers (`postgres`, `redis`, `worker`, `web`, `prometheus`, `grafana`) + 1 one-shot migration container (`migrate`)
 
 ### Parser System
 
@@ -131,6 +138,8 @@ Not microservices. Two app processes + two infra. One codebase.
 - Lifecycle cleanup is handled by generic worker job `source.gc` with per-source retention policy
 - Worker emits structured JSON logs (pino) via worker lifecycle hooks (`active`, `completed`, `failed`) with `traceId` propagation
 - Worker persists per-source runtime health in PostgreSQL `source_health` (`last_success_at`, `last_error_at`, `consecutive_failures`)
+- Worker exposes Prometheus metrics at `/metrics` (queue states + source health + worker uptime)
+- Grafana provisioned dashboards include `OpenCruit Worker Overview` and `OpenCruit PM Overview`
 - Source definitions include pool hint (`light` | `heavy`) for future heavy parsers; current worker runtime uses single process concurrency
 - Ingestion pipeline: validate → normalize → fingerprint → deduplicate → store
 - Deduplication: fingerprint (sha256 of company+title+location) with first-source-wins conflict policy
@@ -142,9 +151,10 @@ Not microservices. Two app processes + two infra. One codebase.
 ### Self-Hosting
 
 - Single `docker compose up -d --build` — all features available (AGPL, not open-core)
+- Local hybrid dev uses `docker-compose.dev.yml` for host Postgres port (`pnpm dev:infra` + `pnpm dev:web`)
 - Migrations run as one-shot `migrate` service (`pnpm --filter @opencruit/db db:migrate`) before `worker`/`web`
 - `db:push` is local prototyping only; production path is versioned SQL migrations in `packages/db/drizzle`
-- Operational runbooks: `docs/DEPLOYMENT.md`, `docs/OPERATIONS.md`, `docs/TROUBLESHOOTING.md`
+- Operational runbooks: `docs/DEPLOYMENT.md`, `docs/OPERATIONS.md`, `docs/OBSERVABILITY.md`, `docs/TROUBLESHOOTING.md`
 
 ## Dependencies — Version Policy
 
