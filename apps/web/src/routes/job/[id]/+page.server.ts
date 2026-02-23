@@ -23,7 +23,7 @@ export const load: PageServerLoad = async ({ params }) => {
       description: row.description,
       tags: row.tags ?? undefined,
       salary:
-        row.salaryMin || row.salaryMax
+        row.salaryMin !== null || row.salaryMax !== null
           ? { min: row.salaryMin ?? undefined, max: row.salaryMax ?? undefined, currency: row.salaryCurrency ?? undefined }
           : undefined,
       postedAt: row.postedAt?.toISOString(),

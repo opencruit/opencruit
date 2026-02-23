@@ -13,7 +13,7 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "ingest": "tsx --env-file=.env scripts/ingest.ts"
+    "ingest": "pnpm --filter @opencruit/ingestion run ingest"
   },
   "devDependencies": {
     "@opencruit/eslint-config": "workspace:*",

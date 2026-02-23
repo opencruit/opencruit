@@ -5,27 +5,21 @@
 
   let { data }: { data: PageData } = $props();
 
-  let search = $state('');
-
-  let filteredJobs = $derived(
-    data.jobs.filter((job) => {
-      if (!search) return true;
-      const q = search.toLowerCase();
-      return (
-        job.title.toLowerCase().includes(q) ||
-        job.company.toLowerCase().includes(q) ||
-        (job.tags ?? []).some((t) => t.toLowerCase().includes(q))
-      );
-    }),
-  );
-
   function formatSalary(salary: { min?: number; max?: number; currency?: string }): string {
     const fmt = (n: number) => `${Math.round(n / 1000)}k`;
     const currency = salary.currency ?? 'USD';
-    if (salary.min && salary.max) return `${fmt(salary.min)}–${fmt(salary.max)} ${currency}`;
-    if (salary.min) return `${fmt(salary.min)}+ ${currency}`;
-    if (salary.max) return `up to ${fmt(salary.max)} ${currency}`;
+    if (salary.min !== undefined && salary.max !== undefined) return `${fmt(salary.min)}–${fmt(salary.max)} ${currency}`;
+    if (salary.min !== undefined) return `${fmt(salary.min)}+ ${currency}`;
+    if (salary.max !== undefined) return `up to ${fmt(salary.max)} ${currency}`;
     return '';
+  }
+
+  function buildPageHref(page: number): string {
+    const params: string[] = [];
+    if (data.filters.query) params.push(`q=${encodeURIComponent(data.filters.query)}`);
+    if (page > 1) params.push(`page=${page}`);
+    const query = params.join('&');
+    return query ? `/?${query}` : '/';
   }
 
   function timeAgo(iso: string): string {
@@ -41,17 +35,24 @@
   <title>Jobs | OpenCruit</title>
 </svelte:head>
 
-<div class="mb-8 flex items-center gap-3">
-  <Input type="text" bind:value={search} placeholder="Search jobs, companies, or tags..." class="flex-1" />
-  {#if search}
-    <Button variant="ghost" size="sm" onclick={() => (search = '')}>Clear</Button>
+<form method="GET" class="mb-8 flex items-center gap-3">
+  <Input
+    name="q"
+    type="text"
+    value={data.filters.query}
+    placeholder="Search jobs, companies, or tags..."
+    class="flex-1"
+  />
+  <Button type="submit" size="sm">Search</Button>
+  {#if data.filters.query}
+    <Button variant="ghost" size="sm" href="/">Clear</Button>
   {/if}
-</div>
+</form>
 
-<p class="mb-4 text-sm text-muted-foreground">{filteredJobs.length} jobs found</p>
+<p class="mb-4 text-sm text-muted-foreground">{data.pagination.total} jobs found</p>
 
 <div class="grid gap-3">
-  {#each filteredJobs as job (job.externalId)}
+  {#each data.jobs as job (job.externalId)}
     <a
       href="/job/{encodeURIComponent(job.externalId)}"
       class="group rounded-xl border border-border/50 bg-card p-5 transition-all hover:border-border hover:bg-accent/50"
@@ -113,13 +114,29 @@
   {/each}
 </div>
 
-{#if filteredJobs.length === 0}
+{#if data.jobs.length === 0}
   <div class="py-16 text-center">
-    {#if search}
-      <p class="text-muted-foreground">No jobs match "<span class="text-foreground">{search}</span>"</p>
-      <Button variant="ghost" size="sm" class="mt-3" onclick={() => (search = '')}>Clear search</Button>
+    {#if data.filters.query}
+      <p class="text-muted-foreground">No jobs match "<span class="text-foreground">{data.filters.query}</span>"</p>
+      <Button variant="ghost" size="sm" class="mt-3" href="/">Clear search</Button>
     {:else}
       <p class="text-muted-foreground">No jobs available right now.</p>
     {/if}
+  </div>
+{/if}
+
+{#if data.pagination.totalPages > 1}
+  <div class="mt-6 flex items-center justify-between gap-3">
+    <p class="text-xs text-muted-foreground">
+      Page {data.pagination.page} of {data.pagination.totalPages}
+    </p>
+    <div class="flex items-center gap-2">
+      {#if data.pagination.page > 1}
+        <Button variant="outline" size="sm" href={buildPageHref(data.pagination.page - 1)}>Previous</Button>
+      {/if}
+      {#if data.pagination.page < data.pagination.totalPages}
+        <Button variant="outline" size="sm" href={buildPageHref(data.pagination.page + 1)}>Next</Button>
+      {/if}
+    </div>
   </div>
 {/if}

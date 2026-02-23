@@ -31,6 +31,7 @@ packages/
   types/                      # @opencruit/types — shared type definitions
   parser-sdk/                 # @opencruit/parser-sdk — parser contract, types, Zod schema
   db/                         # @opencruit/db — Drizzle schema, client, migrations
+  ingestion/                  # @opencruit/ingestion — ingestion pipeline (normalize, validate, dedup, store)
   parsers/
     remoteok/                 # @opencruit/parser-remoteok — RemoteOK JSON API parser
     weworkremotely/           # @opencruit/parser-weworkremotely — WeWorkRemotely parser

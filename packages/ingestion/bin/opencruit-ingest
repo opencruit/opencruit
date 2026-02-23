@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+package_dir="$(cd -- "${script_dir}/.." && pwd)"
+env_file="${OPENCRUIT_ENV_FILE:-${package_dir}/../../.env}"
+
+exec pnpm --dir "${package_dir}" exec tsx --env-file="${env_file}" "${package_dir}/src/bin.ts" "$@"

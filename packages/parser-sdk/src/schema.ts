@@ -25,7 +25,11 @@ export const rawJobSchema = z.object({
 
 export type ValidatedRawJob = z.infer<typeof rawJobSchema>;
 
-export function validateRawJobs(jobs: unknown[]): ValidatedRawJob[] {
+export interface ValidateRawJobsOptions {
+  onInvalid?: (issues: z.ZodIssue[], job: unknown) => void;
+}
+
+export function validateRawJobs(jobs: unknown[], options?: ValidateRawJobsOptions): ValidatedRawJob[] {
   const valid: ValidatedRawJob[] = [];
 
   for (const job of jobs) {
@@ -33,7 +37,7 @@ export function validateRawJobs(jobs: unknown[]): ValidatedRawJob[] {
     if (result.success) {
       valid.push(result.data);
     } else {
-      console.warn('[parser-sdk] Invalid job skipped:', result.error.issues);
+      options?.onInvalid?.(result.error.issues, job);
     }
   }
 

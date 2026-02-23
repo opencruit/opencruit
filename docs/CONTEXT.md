@@ -37,9 +37,10 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 
 ### Self-Hosting
 
-- Single `docker compose up` — 4 containers: postgres, redis, web, worker
+- Current vertical slice: `docker compose up` starts PostgreSQL only
+- Redis, worker process, and full 4-container setup are planned for orchestrator stage
 - Minimal `.env` configuration
-- One Redis for everything (BullMQ queues + Streams + cache)
+- When Redis is introduced, one instance will be used for BullMQ queues, Streams, and cache
 
 ### Parser System
 
@@ -115,10 +116,12 @@ Job listing with search, detail pages, responsive layout.
 `packages/db/` with Drizzle schema (`jobs` table), `docker-compose.yml` for PostgreSQL.
 `pnpm ingest` runs parser → writes to DB. SvelteKit reads from DB.
 
-### Step 3 — Ingestion pipeline
+### Step 3 — Ingestion pipeline — **done**
 
-normalize → validate (Zod schema) → fingerprint → dedup → store.
-Plain function, no BullMQ yet. Processes `RawJob[]` and writes to DB.
+`packages/ingestion/` with composable stages: validate → normalize → fingerprint → dedup (Tier 2) → store.
+Normalization: stripHtml, stripRemoteOKSpam, normalizeTags, normalizeLocation.
+Dedup Tier 2: fingerprint match across sources (first source wins, duplicates skipped).
+`packages/ingestion` exposes `opencruit-ingest` bin (invoked by `pnpm ingest`) for parser → DB pipeline runs.
 
 ### Step 4 — Orchestrator (BullMQ + Redis)
 
@@ -128,7 +131,7 @@ Only when 2+ parsers exist and scheduling is needed. Until then — cron is enou
 
 - Redis Streams / events — no consumers yet
 - BullMQ orchestrator — cron/manual ingest is enough for now
-- Worker process — `scripts/ingest.ts` serves as proto-worker
+- Worker process — `@opencruit/ingestion` bin currently serves as proto-worker entrypoint
 - AI enrichment, notifications, auth
 
 ## Parser SDK
@@ -181,6 +184,7 @@ packages/
   types/            # @opencruit/types
   parser-sdk/       # @opencruit/parser-sdk — types, Zod schema, utilities
   db/               # @opencruit/db — Drizzle schema, client, migrations
+  ingestion/        # @opencruit/ingestion — ingestion pipeline
   parsers/
     remoteok/       # @opencruit/parser-remoteok — RemoteOK JSON API parser
     weworkremotely/ # @opencruit/parser-weworkremotely — WeWorkRemotely HTML parser

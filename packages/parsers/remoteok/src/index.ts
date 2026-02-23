@@ -1,5 +1,10 @@
 import type { Parser, ParseResult, RawJob } from '@opencruit/parser-sdk';
 
+const API_URL = 'https://remoteok.com/api';
+const REQUEST_TIMEOUT_MS = 15_000;
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAYS_MS = [100, 300];
+
 interface RemoteOKJob {
   id: string;
   slug: string;
@@ -39,14 +44,51 @@ function toRawJob(job: RemoteOKJob): RawJob {
   };
 }
 
-export async function parse(): Promise<ParseResult> {
-  const res = await fetch('https://remoteok.com/api', {
-    headers: { 'User-Agent': 'OpenCruit/0.1 (+https://github.com/opencruit/opencruit)' },
-  });
+function shouldRetryStatus(status: number): boolean {
+  return status === 429 || status >= 500;
+}
 
-  if (!res.ok) {
-    throw new Error(`RemoteOK API returned ${res.status}`);
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchRemoteOK(): Promise<Response> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(API_URL, {
+        headers: { 'User-Agent': 'OpenCruit/0.1 (+https://github.com/opencruit/opencruit)' },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+
+      if (res.ok) return res;
+
+      const statusError = new Error(`RemoteOK API returned ${res.status}`);
+      if (!shouldRetryStatus(res.status)) {
+        throw statusError;
+      }
+
+      lastError = statusError;
+    } catch (error) {
+      if (error instanceof Error) {
+        lastError = error;
+      } else {
+        lastError = new Error(String(error));
+      }
+    }
+
+    if (attempt < MAX_ATTEMPTS) {
+      const delay = RETRY_DELAYS_MS[attempt - 1] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1] ?? 0;
+      await sleep(delay);
+    }
   }
+
+  throw lastError ?? new Error(`RemoteOK API request failed after ${MAX_ATTEMPTS} attempts`);
+}
+
+export async function parse(): Promise<ParseResult> {
+  const res = await fetchRemoteOK();
 
   const data = (await res.json()) as RemoteOKJob[];
 
