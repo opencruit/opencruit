@@ -10,6 +10,22 @@ export interface StoreResult {
   upserted: number;
 }
 
+const PG_INT32_MAX = 2_147_483_647;
+const PG_INT32_MIN = -2_147_483_648;
+
+function toDbInteger(value: number | null | undefined): number | null {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return null;
+  }
+
+  const rounded = Math.round(value);
+  if (rounded > PG_INT32_MAX || rounded < PG_INT32_MIN) {
+    return null;
+  }
+
+  return rounded;
+}
+
 /**
  * Compute a SHA-256 hash of content fields for change detection.
  * Used to skip updates when nothing has changed.
@@ -78,8 +94,8 @@ export async function store(outcomes: DedupOutcome[], db: Database): Promise<Sto
       isRemote: normalizedJob.isRemote ?? false,
       description: normalizedJob.description,
       tags: normalizedJob.tags ?? null,
-      salaryMin: normalizedJob.salary?.min ?? null,
-      salaryMax: normalizedJob.salary?.max ?? null,
+      salaryMin: toDbInteger(normalizedJob.salary?.min),
+      salaryMax: toDbInteger(normalizedJob.salary?.max),
       salaryCurrency: normalizedJob.salary?.currency ?? null,
       postedAt: normalizedJob.postedAt ?? null,
       applyUrl: normalizedJob.applyUrl ?? null,

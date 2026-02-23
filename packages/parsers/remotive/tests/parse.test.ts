@@ -12,7 +12,6 @@ interface MockFetchResponse {
   ok: boolean;
   status?: number;
   json?: unknown;
-  jsonError?: Error;
 }
 
 function mockFetchSequence(responses: MockFetchResponse[]) {
@@ -24,7 +23,7 @@ function mockFetchSequence(responses: MockFetchResponse[]) {
     return Promise.resolve({
       ok: response.ok,
       status: response.status ?? (response.ok ? 200 : 500),
-      json: () => (response.jsonError ? Promise.reject(response.jsonError) : Promise.resolve(response.json)),
+      json: () => Promise.resolve(response.json),
     });
   });
 
@@ -32,19 +31,19 @@ function mockFetchSequence(responses: MockFetchResponse[]) {
   return fetchMock;
 }
 
-describe('RemoteOK parser', () => {
+describe('Remotive parser', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
   describe('parsing', () => {
     beforeEach(() => {
-      mockFetchSequence([{ ok: true, json: [{ legal: 'notice' }, ...fixture] }]);
+      mockFetchSequence([{ ok: true, json: { jobs: fixture, 'job-count': fixture.length, 'total-job-count': fixture.length } }]);
     });
 
     it('parses jobs from API response', async () => {
       const result = await parse();
-      const validFixtures = fixture.filter((f: Record<string, string>) => f.position && f.company);
+      const validFixtures = fixture.filter((f: Record<string, string>) => f.title && f.company_name);
       expect(result.jobs.length).toBe(validFixtures.length);
     });
 
@@ -52,25 +51,13 @@ describe('RemoteOK parser', () => {
       const result = await parse();
       const job = result.jobs[0]!;
 
-      expect(job.sourceId).toBe('remoteok');
-      expect(job.externalId).toMatch(/^remoteok:/);
-      expect(job.title).toBe(fixture[0]!.position);
-      expect(job.company).toBe(fixture[0]!.company);
+      expect(job.sourceId).toBe('remotive');
+      expect(job.externalId).toMatch(/^remotive:/);
+      expect(job.title).toBe(fixture[0]!.title);
+      expect(job.company).toBe(fixture[0]!.company_name);
       expect(job.isRemote).toBe(true);
       expect(job.url).toBeTruthy();
       expect(job.description).toBeTruthy();
-    });
-
-    it('skips salary when both min and max are 0', async () => {
-      const sample = {
-        ...fixture[0]!,
-        salary_min: 0,
-        salary_max: 0,
-      };
-      mockFetchSequence([{ ok: true, json: [{ legal: 'notice' }, sample] }]);
-
-      const result = await parse();
-      expect(result.jobs[0]!.salary).toBeUndefined();
     });
 
     it('includes tags', async () => {
@@ -82,9 +69,31 @@ describe('RemoteOK parser', () => {
     });
   });
 
+  describe('salary parsing', () => {
+    it('parses salary range string', async () => {
+      const jobWithSalary = { ...fixture[0]!, salary: '$120,000 - $170,000' };
+      mockFetchSequence([{ ok: true, json: { jobs: [jobWithSalary] } }]);
+
+      const result = await parse();
+      expect(result.jobs[0]!.salary).toEqual({
+        min: 120_000,
+        max: 170_000,
+        currency: 'USD',
+      });
+    });
+
+    it('returns undefined for empty salary', async () => {
+      const jobNoSalary = { ...fixture[0]!, salary: '' };
+      mockFetchSequence([{ ok: true, json: { jobs: [jobNoSalary] } }]);
+
+      const result = await parse();
+      expect(result.jobs[0]!.salary).toBeUndefined();
+    });
+  });
+
   describe('schema validation', () => {
     beforeEach(() => {
-      mockFetchSequence([{ ok: true, json: [{ legal: 'notice' }, ...fixture] }]);
+      mockFetchSequence([{ ok: true, json: { jobs: fixture } }]);
     });
 
     it('every job passes RawJob zod schema', async () => {
@@ -102,34 +111,17 @@ describe('RemoteOK parser', () => {
   describe('error handling', () => {
     it('throws on API 500', async () => {
       mockFetchSequence([{ ok: false, status: 500 }]);
-      await expect(parse()).rejects.toThrow('RemoteOK API returned 500');
+      await expect(parse()).rejects.toThrow('Remotive API returned 500');
     });
 
-    it('throws immediately on API 403 without retries', async () => {
-      const fetchMock = mockFetchSequence([{ ok: false, status: 403 }]);
-
-      await expect(parse()).rejects.toThrow('RemoteOK API returned 403');
+    it('throws immediately on API 400 without retries', async () => {
+      const fetchMock = mockFetchSequence([{ ok: false, status: 400 }]);
+      await expect(parse()).rejects.toThrow('Remotive API returned 400');
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
-    it('retries when a 200 response contains invalid JSON body', async () => {
-      const fetchMock = mockFetchSequence([
-        { ok: true, jsonError: new SyntaxError('Unexpected token <') },
-        { ok: true, json: [{ legal: 'notice' }, ...fixture] },
-      ]);
-
-      const result = await parse();
-      expect(result.jobs.length).toBeGreaterThan(0);
-      expect(fetchMock).toHaveBeenCalledTimes(2);
-    });
-
-    it('throws when API response payload is not an array', async () => {
-      mockFetchSequence([{ ok: true, json: { error: 'rate limited' } }]);
-      await expect(parse()).rejects.toThrow('RemoteOK API returned non-array payload');
-    });
-
-    it('returns empty jobs when only legal notice is present', async () => {
-      mockFetchSequence([{ ok: true, json: [{ legal: 'notice' }] }]);
+    it('returns empty jobs for empty response', async () => {
+      mockFetchSequence([{ ok: true, json: { jobs: [] } }]);
       const result = await parse();
       expect(result.jobs).toEqual([]);
     });

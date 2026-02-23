@@ -9,16 +9,25 @@ const RETRY_DELAYS_MS = [100, 300];
 interface WwrItem {
   title: string;
   link: string;
-  guid: string;
+  guid?: string;
   description: string;
-  pubDate: string;
+  pubDate?: string;
   region?: string;
   category?: string;
   type?: string;
   skills?: string;
-  'media:content'?: {
-    '@_url': string;
-  };
+  companyLogoUrl?: string;
+  raw: Record<string, unknown>;
+}
+
+type JsonRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is JsonRecord {
+  return typeof value === 'object' && value !== null;
+}
+
+function asString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
 }
 
 function parseTitle(raw: string): { company: string; title: string } | null {
@@ -57,6 +66,44 @@ function parseTags(skills: string | undefined, category: string | undefined): st
   return tags.length > 0 ? tags : undefined;
 }
 
+function parseDate(dateRaw: string | undefined): Date | undefined {
+  if (!dateRaw) {
+    return undefined;
+  }
+
+  const parsed = new Date(dateRaw);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+function toWwrItem(value: unknown): WwrItem | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const title = asString(value.title);
+  const link = asString(value.link) ?? asString(value.guid);
+  if (!title || !link) {
+    return null;
+  }
+
+  const mediaContent = value['media:content'];
+  const companyLogoUrl = isRecord(mediaContent) ? asString(mediaContent['@_url']) : undefined;
+
+  return {
+    title,
+    link,
+    guid: asString(value.guid),
+    description: asString(value.description) ?? title,
+    pubDate: asString(value.pubDate),
+    region: asString(value.region),
+    category: asString(value.category),
+    type: asString(value.type),
+    skills: asString(value.skills),
+    companyLogoUrl,
+    raw: value,
+  };
+}
+
 function toRawJob(item: WwrItem): RawJob | null {
   const parsed = parseTitle(item.title);
   if (!parsed) return null;
@@ -67,14 +114,14 @@ function toRawJob(item: WwrItem): RawJob | null {
     url: item.link,
     title: parsed.title,
     company: parsed.company,
-    companyLogoUrl: item['media:content']?.['@_url'] || undefined,
+    companyLogoUrl: item.companyLogoUrl || undefined,
     location: item.region || undefined,
     isRemote: true,
     description: item.description,
     tags: parseTags(item.skills, item.category),
-    postedAt: new Date(item.pubDate),
+    postedAt: parseDate(item.pubDate),
     applyUrl: item.link,
-    raw: item as unknown as Record<string, unknown>,
+    raw: item.raw,
   };
 }
 
@@ -90,32 +137,37 @@ async function fetchRss(): Promise<Response> {
   let lastError: Error | undefined;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    let res: Response;
+
     try {
-      const res = await fetch(RSS_URL, {
+      res = await fetch(RSS_URL, {
         headers: { 'User-Agent': 'OpenCruit/0.1 (+https://github.com/opencruit/opencruit)' },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (attempt < MAX_ATTEMPTS) {
+        const delay = RETRY_DELAYS_MS[attempt - 1] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1] ?? 0;
+        await sleep(delay);
+      }
+      continue;
+    }
 
-      if (res.ok) return res;
-
+    if (!res.ok) {
       const statusError = new Error(`WeWorkRemotely RSS returned ${res.status}`);
       if (!shouldRetryStatus(res.status)) {
         throw statusError;
       }
 
       lastError = statusError;
-    } catch (error) {
-      if (error instanceof Error) {
-        lastError = error;
-      } else {
-        lastError = new Error(String(error));
+      if (attempt < MAX_ATTEMPTS) {
+        const delay = RETRY_DELAYS_MS[attempt - 1] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1] ?? 0;
+        await sleep(delay);
       }
+      continue;
     }
 
-    if (attempt < MAX_ATTEMPTS) {
-      const delay = RETRY_DELAYS_MS[attempt - 1] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1] ?? 0;
-      await sleep(delay);
-    }
+    return res;
   }
 
   throw lastError ?? new Error(`WeWorkRemotely RSS request failed after ${MAX_ATTEMPTS} attempts`);
@@ -129,13 +181,18 @@ export async function parse(): Promise<ParseResult> {
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
+    parseTagValue: false,
   });
 
-  const feed = parser.parse(xml) as { rss?: { channel?: { item?: WwrItem | WwrItem[] } } };
+  const feed = parser.parse(xml) as { rss?: { channel?: { item?: unknown | unknown[] } } };
   const rawItems = feed?.rss?.channel?.item;
-  const items: WwrItem[] = Array.isArray(rawItems) ? rawItems : rawItems ? [rawItems] : [];
+  const items = Array.isArray(rawItems) ? rawItems : rawItems ? [rawItems] : [];
 
-  const jobs = items.map(toRawJob).filter((job): job is RawJob => job !== null);
+  const jobs = items
+    .map(toWwrItem)
+    .filter((item): item is WwrItem => item !== null)
+    .map(toRawJob)
+    .filter((job): job is RawJob => job !== null);
 
   return { jobs };
 }

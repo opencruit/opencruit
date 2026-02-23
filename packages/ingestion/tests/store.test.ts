@@ -8,6 +8,7 @@ function makeOutcome(
   sourceId: string,
   externalId: string,
   fingerprint: string,
+  overrides: Partial<NormalizedJob> = {},
 ): DedupOutcome {
   const job: NormalizedJob = {
     sourceId,
@@ -16,6 +17,7 @@ function makeOutcome(
     title: 'Engineer',
     company: 'Acme',
     description: 'Job description',
+    ...overrides,
     _normalized: true as const,
   };
 
@@ -85,5 +87,33 @@ describe('store', () => {
     const [rows] = values.mock.calls[0]!;
     expect(rows).toHaveLength(2);
     expect(result).toEqual({ plannedInserts: 1, plannedUpdates: 1, upserted: 2 });
+  });
+
+  it('normalizes decimal salary values to database-safe integers', async () => {
+    const { db, values } = mockDb();
+    const outcomes: DedupOutcome[] = [
+      makeOutcome('insert', 'source-a', 'ext-decimal', 'fp-decimal', {
+        salary: {
+          min: 39_998.4,
+          max: 75_000.8,
+          currency: 'USD',
+        },
+      }),
+      makeOutcome('insert', 'source-a', 'ext-overflow', 'fp-overflow', {
+        salary: {
+          min: 99_999_999_999,
+          max: -99_999_999_999,
+          currency: 'USD',
+        },
+      }),
+    ];
+
+    await store(outcomes, db);
+
+    const [rows] = values.mock.calls[0]!;
+    expect(rows[0]?.salaryMin).toBe(39_998);
+    expect(rows[0]?.salaryMax).toBe(75_001);
+    expect(rows[1]?.salaryMin).toBeNull();
+    expect(rows[1]?.salaryMax).toBeNull();
   });
 });

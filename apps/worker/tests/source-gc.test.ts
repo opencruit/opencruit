@@ -2,7 +2,9 @@ import type { Database } from '@opencruit/db';
 import type { Job } from 'bullmq';
 import { describe, expect, it, vi } from 'vitest';
 import { handleSourceGcJob } from '../src/jobs/source-gc.js';
+import { listKnownGcPolicySources } from '../src/jobs/source-gc-policy.js';
 import type { SourceGcJobData } from '../src/queues.js';
+import { stub } from './test-helpers.js';
 
 function createArchiveDbMock(archivedRowsCount: number) {
   const returning = vi.fn().mockResolvedValue(Array.from({ length: archivedRowsCount }, (_, idx) => ({ id: String(idx) })));
@@ -13,11 +15,11 @@ function createArchiveDbMock(archivedRowsCount: number) {
   const del = vi.fn();
 
   return {
-    db: {
+    db: stub<Database>({
       update,
       selectDistinct,
       delete: del,
-    } as unknown as Database,
+    }),
     update,
     selectDistinct,
   };
@@ -34,11 +36,11 @@ function createDeleteDbMock(sourceIds: string[]) {
   const update = vi.fn();
 
   return {
-    db: {
+    db: stub<Database>({
       selectDistinct,
       delete: del,
       update,
-    } as unknown as Database,
+    }),
     del,
     deleteWhere,
     deleteReturning,
@@ -65,15 +67,16 @@ describe('handleSourceGcJob', () => {
   it('deletes expired jobs for all known and discovered sources', async () => {
     const { db, del, selectDistinct } = createDeleteDbMock(['customsource']);
     const job = { data: { mode: 'delete' } } as Job<SourceGcJobData>;
+    const expectedSources = new Set([...listKnownGcPolicySources(), 'customsource']);
 
     const result = await handleSourceGcJob(job, { db });
 
     expect(selectDistinct).toHaveBeenCalledTimes(1);
-    expect(del).toHaveBeenCalledTimes(4);
+    expect(del).toHaveBeenCalledTimes(expectedSources.size);
     expect(result).toEqual({
       archived: 0,
-      deleted: 4,
-      processedSources: 4,
+      deleted: expectedSources.size,
+      processedSources: expectedSources.size,
     });
   });
 });

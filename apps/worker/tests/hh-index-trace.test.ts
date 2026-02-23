@@ -4,6 +4,7 @@ import type { HhClient, HhSearchResponse } from '@opencruit/parser-hh';
 import { describe, expect, it, vi } from 'vitest';
 import { handleHhIndexJob } from '../src/jobs/hh-index.js';
 import type { HhHydrateJobData, HhIndexJobData } from '../src/queues.js';
+import { stub } from './test-helpers.js';
 
 function createDbMock() {
   const limit = vi.fn().mockResolvedValue([]);
@@ -16,10 +17,10 @@ function createDbMock() {
   const insert = vi.fn().mockReturnValue({ values });
 
   return {
-    db: {
+    db: stub<Database>({
       select,
       insert,
-    } as unknown as Database,
+    }),
   };
 }
 
@@ -46,11 +47,11 @@ function createSearchResponse(): HhSearchResponse {
 describe('handleHhIndexJob trace propagation', () => {
   it('forwards trace id to hydrate jobs', async () => {
     const { db } = createDbMock();
-    const hydrateQueue = { add: vi.fn().mockResolvedValue(undefined) } as unknown as Queue<HhHydrateJobData>;
-    const indexQueue = { add: vi.fn().mockResolvedValue(undefined) } as unknown as Queue<HhIndexJobData>;
-    const client = {
+    const hydrateQueue = stub<Queue<HhHydrateJobData>>({ add: vi.fn().mockResolvedValue(undefined) });
+    const indexQueue = stub<Queue<HhIndexJobData>>({ add: vi.fn().mockResolvedValue(undefined) });
+    const client = stub<HhClient>({
       searchVacancies: vi.fn().mockResolvedValue(createSearchResponse()),
-    } as unknown as HhClient;
+    });
 
     const job = {
       data: {

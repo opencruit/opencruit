@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Queues } from '../src/queues.js';
 import { scheduleAllSources } from '../src/scheduler.js';
 import { getBatchSources, getWorkflowSources } from '../src/sources/catalog.js';
+import { stub } from './test-helpers.js';
 
 vi.mock('../src/sources/catalog.js', () => ({
   getBatchSources: vi.fn(),
@@ -14,11 +15,11 @@ const getWorkflowSourcesMock = vi.mocked(getWorkflowSources);
 
 function createQueuesMock(): Queues {
   return {
-    sourceIngestQueue: { add: vi.fn().mockResolvedValue(undefined) } as unknown as Queues['sourceIngestQueue'],
-    indexQueue: { add: vi.fn().mockResolvedValue(undefined) } as unknown as Queues['indexQueue'],
-    hydrateQueue: { add: vi.fn().mockResolvedValue(undefined) } as unknown as Queues['hydrateQueue'],
-    refreshQueue: { add: vi.fn().mockResolvedValue(undefined) } as unknown as Queues['refreshQueue'],
-    sourceGcQueue: { add: vi.fn().mockResolvedValue(undefined) } as unknown as Queues['sourceGcQueue'],
+    sourceIngestQueue: stub<Queues['sourceIngestQueue']>({ add: vi.fn().mockResolvedValue(undefined) }),
+    indexQueue: stub<Queues['indexQueue']>({ add: vi.fn().mockResolvedValue(undefined) }),
+    hydrateQueue: stub<Queues['hydrateQueue']>({ add: vi.fn().mockResolvedValue(undefined) }),
+    refreshQueue: stub<Queues['refreshQueue']>({ add: vi.fn().mockResolvedValue(undefined) }),
+    sourceGcQueue: stub<Queues['sourceGcQueue']>({ add: vi.fn().mockResolvedValue(undefined) }),
   };
 }
 
@@ -71,12 +72,13 @@ describe('scheduleAllSources', () => {
     ]);
 
     const queues = createQueuesMock();
-    const hhClient = {} as unknown as HhClient;
+    const hhClient = stub<HhClient>({});
 
     const result = await scheduleAllSources(queues, hhClient, {
       bootstrapIndexNow: false,
     });
 
+    expect(result.batchErrors).toEqual([]);
     expect(result.workflowErrors).toEqual([]);
     expect(result.scheduledBatchSources).toBe(1);
     expect(result.scheduledWorkflowSources).toBe(1);
@@ -134,10 +136,11 @@ describe('scheduleAllSources', () => {
     ]);
 
     const queues = createQueuesMock();
-    const hhClient = {} as unknown as HhClient;
+    const hhClient = stub<HhClient>({});
 
     const result = await scheduleAllSources(queues, hhClient);
 
+    expect(result.batchErrors).toEqual([]);
     expect(result.scheduledBatchSources).toBe(1);
     expect(result.scheduledWorkflowSources).toBe(0);
     expect(result.workflowErrors).toEqual([
@@ -151,5 +154,79 @@ describe('scheduleAllSources', () => {
     expect(vi.mocked(queues.sourceGcQueue.add)).toHaveBeenCalledTimes(2);
     expect(vi.mocked(queues.indexQueue.add)).not.toHaveBeenCalled();
     expect(vi.mocked(queues.refreshQueue.add)).not.toHaveBeenCalled();
+  });
+
+  it('keeps workflow scheduling when one batch source fails', async () => {
+    const setupScheduler = vi.fn().mockResolvedValue({});
+
+    getBatchSourcesMock.mockReturnValue([
+      {
+        id: 'remoteok',
+        kind: 'batch',
+        pool: 'light',
+        runtime: {
+          attempts: 3,
+          backoffMs: 5000,
+        },
+        parser: {
+          manifest: {
+            id: 'remoteok',
+            name: 'RemoteOK',
+            version: '0.1.0',
+            schedule: '',
+          },
+          parse: vi.fn(),
+        },
+      },
+      {
+        id: 'remotive',
+        kind: 'batch',
+        pool: 'light',
+        runtime: {
+          attempts: 3,
+          backoffMs: 5000,
+        },
+        parser: {
+          manifest: {
+            id: 'remotive',
+            name: 'Remotive',
+            version: '0.1.0',
+            schedule: '0 */4 * * *',
+          },
+          parse: vi.fn(),
+        },
+      },
+    ]);
+
+    getWorkflowSourcesMock.mockReturnValue([
+      {
+        id: 'hh',
+        kind: 'workflow',
+        pool: 'light',
+        runtime: {
+          attempts: 4,
+          backoffMs: 5000,
+        },
+        setupScheduler,
+      },
+    ]);
+
+    const queues = createQueuesMock();
+    const hhClient = {} as HhClient;
+
+    const result = await scheduleAllSources(queues, hhClient);
+
+    expect(result.scheduledBatchSources).toBe(1);
+    expect(result.batchErrors).toEqual([
+      {
+        sourceId: 'remoteok',
+        error: 'Source remoteok has no schedule configured',
+      },
+    ]);
+    expect(result.scheduledWorkflowSources).toBe(1);
+    expect(result.workflowErrors).toEqual([]);
+    expect(vi.mocked(queues.sourceIngestQueue.add)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(queues.sourceGcQueue.add)).toHaveBeenCalledTimes(2);
+    expect(setupScheduler).toHaveBeenCalledTimes(1);
   });
 });

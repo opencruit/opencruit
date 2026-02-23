@@ -1,0 +1,13 @@
+import { arbeitnowParser } from '@opencruit/parser-arbeitnow';
+import { defineSource } from '../define-source.js';
+
+export const arbeitnowSource = defineSource({
+  id: arbeitnowParser.manifest.id,
+  kind: 'batch',
+  pool: 'light',
+  runtime: {
+    attempts: 3,
+    backoffMs: 5000,
+  },
+  parser: arbeitnowParser,
+});

@@ -1,6 +1,8 @@
 import type { ValidatedRawJob } from '@opencruit/parser-sdk';
 import type { NormalizedJob } from './types.js';
 
+const MAX_LOCATION_LENGTH = 255;
+
 /**
  * Trim whitespace and collapse multiple spaces.
  */
@@ -87,6 +89,10 @@ export function normalizeLocation(location: string): string {
   const match = loc.match(remotePrefix);
   if (match) {
     loc = `${match[1].trim()} (Remote)`;
+  }
+
+  if (loc.length > MAX_LOCATION_LENGTH) {
+    loc = loc.slice(0, MAX_LOCATION_LENGTH).trim();
   }
 
   return loc;

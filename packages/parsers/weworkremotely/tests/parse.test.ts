@@ -8,15 +8,27 @@ import { rawJobSchema } from '@opencruit/parser-sdk';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixture = readFileSync(resolve(__dirname, '../fixtures/feed.xml'), 'utf-8');
 
-function mockFetch(response: { ok: boolean; status?: number; text?: string }) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn().mockResolvedValue({
+interface MockFetchResponse {
+  ok: boolean;
+  status?: number;
+  text?: string;
+}
+
+function mockFetchSequence(responses: MockFetchResponse[]) {
+  let idx = 0;
+  const fetchMock = vi.fn().mockImplementation(() => {
+    const response = responses[Math.min(idx, responses.length - 1)]!;
+    idx += 1;
+
+    return Promise.resolve({
       ok: response.ok,
       status: response.status ?? (response.ok ? 200 : 500),
       text: () => Promise.resolve(response.text),
-    }),
-  );
+    });
+  });
+
+  vi.stubGlobal('fetch', fetchMock);
+  return fetchMock;
 }
 
 describe('WeWorkRemotely parser', () => {
@@ -26,7 +38,7 @@ describe('WeWorkRemotely parser', () => {
 
   describe('parsing', () => {
     beforeEach(() => {
-      mockFetch({ ok: true, text: fixture });
+      mockFetchSequence([{ ok: true, text: fixture }]);
     });
 
     it('parses jobs from RSS feed', async () => {
@@ -49,7 +61,6 @@ describe('WeWorkRemotely parser', () => {
       const result = await parse();
       const job = result.jobs[0]!;
 
-      // First fixture item: "Summedd: Full Stack Engineer with AI Coding expertise for SaaS Platform"
       expect(job.company).toBe('Summedd');
       expect(job.title).toBe('Full Stack Engineer with AI Coding expertise for SaaS Platform');
     });
@@ -58,14 +69,11 @@ describe('WeWorkRemotely parser', () => {
       const result = await parse();
       const job = result.jobs[0]!;
 
-      expect(job.externalId).toBe(
-        'weworkremotely:summedd-full-stack-engineer-with-ai-coding-expertise-for-saas-platform',
-      );
+      expect(job.externalId).toBe('weworkremotely:summedd-full-stack-engineer-with-ai-coding-expertise-for-saas-platform');
     });
 
     it('parses tags from skills', async () => {
       const result = await parse();
-      // Third fixture item (Ottimate) has skills
       const jobWithSkills = result.jobs.find((j) => j.tags && j.tags.length > 2);
 
       expect(jobWithSkills).toBeDefined();
@@ -100,11 +108,50 @@ describe('WeWorkRemotely parser', () => {
       expect(job.postedAt).toBeInstanceOf(Date);
       expect(job.postedAt!.getFullYear()).toBeGreaterThanOrEqual(2025);
     });
+
+    it('ignores malformed item title without throwing (type coercion guard)', async () => {
+      const malformedFeed = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss">
+  <channel>
+    <title>WWR</title>
+    <item>
+      <title>123</title>
+      <link>https://weworkremotely.com/remote-jobs/testco-test-job</link>
+      <description>Job description here</description>
+      <pubDate>Mon, 01 Jan 2026 00:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>`;
+      mockFetchSequence([{ ok: true, text: malformedFeed }]);
+
+      const result = await parse();
+      expect(result.jobs).toEqual([]);
+    });
+
+    it('uses guid when link is missing', async () => {
+      const guidOnlyFeed = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss">
+  <channel>
+    <title>WWR</title>
+    <item>
+      <title>TestCo: Test Job</title>
+      <guid>https://weworkremotely.com/remote-jobs/testco-test-job</guid>
+      <description>Job description here</description>
+      <pubDate>Mon, 01 Jan 2026 00:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>`;
+      mockFetchSequence([{ ok: true, text: guidOnlyFeed }]);
+
+      const result = await parse();
+      expect(result.jobs.length).toBe(1);
+      expect(result.jobs[0]!.url).toBe('https://weworkremotely.com/remote-jobs/testco-test-job');
+    });
   });
 
   describe('schema validation', () => {
     beforeEach(() => {
-      mockFetch({ ok: true, text: fixture });
+      mockFetchSequence([{ ok: true, text: fixture }]);
     });
 
     it('every job passes RawJob zod schema', async () => {
@@ -121,14 +168,20 @@ describe('WeWorkRemotely parser', () => {
 
   describe('error handling', () => {
     it('throws on HTTP 500', async () => {
-      mockFetch({ ok: false, status: 500 });
+      mockFetchSequence([{ ok: false, status: 500 }]);
       await expect(parse()).rejects.toThrow('WeWorkRemotely RSS returned 500');
+    });
+
+    it('throws immediately on HTTP 404 without retries', async () => {
+      const fetchMock = mockFetchSequence([{ ok: false, status: 404 }]);
+      await expect(parse()).rejects.toThrow('WeWorkRemotely RSS returned 404');
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
     it('returns empty jobs for empty feed', async () => {
       const emptyFeed = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel><title>WWR</title></channel></rss>`;
-      mockFetch({ ok: true, text: emptyFeed });
+      mockFetchSequence([{ ok: true, text: emptyFeed }]);
       const result = await parse();
       expect(result.jobs).toEqual([]);
     });
@@ -150,7 +203,7 @@ describe('WeWorkRemotely parser', () => {
     </item>
   </channel>
 </rss>`;
-      mockFetch({ ok: true, text: singleItem });
+      mockFetchSequence([{ ok: true, text: singleItem }]);
       const result = await parse();
       expect(result.jobs.length).toBe(1);
       expect(result.jobs[0]!.company).toBe('TestCo');

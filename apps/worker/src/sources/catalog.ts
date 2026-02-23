@@ -1,9 +1,21 @@
 import type { BatchSourceDefinition, SourceDefinition, WorkflowSourceDefinition } from './types.js';
 import { remoteOkSource } from './batch/remoteok-source.js';
 import { weworkremotelySource } from './batch/weworkremotely-source.js';
+import { remotiveSource } from './batch/remotive-source.js';
+import { arbeitnowSource } from './batch/arbeitnow-source.js';
+import { jobicySource } from './batch/jobicy-source.js';
+import { himalayasSource } from './batch/himalayas-source.js';
 import { hhSource } from './workflow/hh-source.js';
 
-const allSources: SourceDefinition[] = [remoteOkSource, weworkremotelySource, hhSource];
+const allSources: SourceDefinition[] = [
+  remoteOkSource,
+  weworkremotelySource,
+  remotiveSource,
+  arbeitnowSource,
+  jobicySource,
+  himalayasSource,
+  hhSource,
+];
 
 function buildSourceMap(sources: SourceDefinition[]): Map<string, SourceDefinition> {
   const sourceMap = new Map<string, SourceDefinition>();

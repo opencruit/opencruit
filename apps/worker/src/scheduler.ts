@@ -21,6 +21,10 @@ export interface SchedulerOptions {
 export interface SchedulerResult {
   scheduledBatchSources: number;
   scheduledWorkflowSources: number;
+  batchErrors: Array<{
+    sourceId: string;
+    error: string;
+  }>;
   workflowErrors: Array<{
     sourceId: string;
     error: string;
@@ -113,29 +117,39 @@ export async function scheduleAllSources(
   const refreshBatchSize = options.refreshBatchSize ?? 500;
   const batchSources = getBatchSources();
   const workflowSources = getWorkflowSources();
+  let scheduledBatchSources = 0;
+  const batchErrors: Array<{ sourceId: string; error: string }> = [];
 
   for (const source of batchSources) {
-    const schedule = resolveSourceSchedule(source, options.sourceSchedules);
+    try {
+      const schedule = resolveSourceSchedule(source, options.sourceSchedules);
 
-    await queues.sourceIngestQueue.add(
-      'source-ingest',
-      {
+      await queues.sourceIngestQueue.add(
+        'source-ingest',
+        {
+          sourceId: source.id,
+        },
+        {
+          jobId: `source-ingest-${source.id}`,
+          repeat: {
+            pattern: schedule,
+          },
+          attempts: source.runtime.attempts,
+          backoff: {
+            type: 'exponential',
+            delay: source.runtime.backoffMs,
+          },
+          removeOnComplete: true,
+          removeOnFail: 1000,
+        },
+      );
+      scheduledBatchSources += 1;
+    } catch (error) {
+      batchErrors.push({
         sourceId: source.id,
-      },
-      {
-        jobId: `source-ingest-${source.id}`,
-        repeat: {
-          pattern: schedule,
-        },
-        attempts: source.runtime.attempts,
-        backoff: {
-          type: 'exponential',
-          delay: source.runtime.backoffMs,
-        },
-        removeOnComplete: true,
-        removeOnFail: 1000,
-      },
-    );
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   await scheduleSourceGcJobs(queues, gcArchiveCron, gcDeleteCron);
@@ -171,8 +185,9 @@ export async function scheduleAllSources(
   }
 
   return {
-    scheduledBatchSources: batchSources.length,
+    scheduledBatchSources,
     scheduledWorkflowSources,
+    batchErrors,
     workflowErrors,
     workflowStats,
   };

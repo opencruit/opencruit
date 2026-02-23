@@ -39,10 +39,11 @@ High-level architecture snapshot. For implementation details and status, see `do
 ### Worker Orchestrator
 
 - Single production orchestrator for all source polling and lifecycle jobs.
-- `source.ingest`: runs simple parsers (`remoteok`, `weworkremotely`) on cron.
+- `source.ingest`: runs simple parsers (`remoteok`, `weworkremotely`, `remotive`, `arbeitnow`, `jobicy`, `himalayas`) on cron.
 - `hh.index` / `hh.hydrate` / `hh.refresh`: HH-specific multi-phase workflow.
 - `source.gc`: generic retention job for archive/delete by source policy.
-- Structured JSON logging via `pino`, with `traceId` propagation (`withLogger` / `withTrace`).
+- Scheduler setup is failure-isolated per source (one broken source does not block the rest).
+- Structured JSON logging via `pino` from worker lifecycle hooks, with `traceId` propagation.
 - Durable per-source runtime health state in PostgreSQL `source_health`.
 - Worker source catalog (`defineSource`) is the orchestration entrypoint for batch and workflow sources.
 

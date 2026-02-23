@@ -1,6 +1,7 @@
 # Worker Logging Runbook
 
 Structured worker logs use JSON lines via `pino` and are written to stdout.
+Telemetry is attached via BullMQ worker lifecycle hooks (`active`, `completed`, `failed`) and stays outside business handlers.
 
 ## Configuration
 

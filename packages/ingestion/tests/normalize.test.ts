@@ -133,6 +133,14 @@ describe('normalizeLocation', () => {
   it('leaves "Anywhere in the World" unchanged', () => {
     expect(normalizeLocation('Anywhere in the World')).toBe('Anywhere in the World');
   });
+
+  it('truncates very long locations to 255 characters', () => {
+    const longLocation = 'Remote, ' + 'A'.repeat(400);
+    const normalized = normalizeLocation(longLocation);
+
+    expect(normalized.length).toBe(255);
+    expect(normalized.endsWith('(Remote)')).toBe(false);
+  });
 });
 
 describe('normalize', () => {

@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { handleBatchIngestJob } from '../src/jobs/batch-ingest.js';
 import { getSourceById } from '../src/sources/catalog.js';
 import type { SourceIngestJobData } from '../src/queues.js';
+import { stub } from './test-helpers.js';
 
 vi.mock('@opencruit/ingestion', async () => {
   const actual = await vi.importActual<typeof import('@opencruit/ingestion')>('@opencruit/ingestion');
@@ -24,13 +25,13 @@ const getSourceByIdMock = vi.mocked(getSourceById);
 
 function createLoggerMock(): Logger {
   const child = vi.fn();
-  const logger = {
+  const logger = stub<Logger>({
     debug: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
     child,
-  } as unknown as Logger;
+  });
   child.mockReturnValue(logger);
 
   return logger;
@@ -92,7 +93,7 @@ describe('handleBatchIngestJob', () => {
     });
 
     const job = { data: { sourceId: 'remoteok' } } as Job<SourceIngestJobData>;
-    const db = {} as Database;
+    const db = stub<Database>({});
 
     const result = await handleBatchIngestJob(job, { db, logger: createLoggerMock() });
 
@@ -119,7 +120,7 @@ describe('handleBatchIngestJob', () => {
 
     const job = { data: { sourceId: 'unknown' } } as Job<SourceIngestJobData>;
 
-    await expect(handleBatchIngestJob(job, { db: {} as Database, logger: createLoggerMock() })).rejects.toThrow(
+    await expect(handleBatchIngestJob(job, { db: stub<Database>({}), logger: createLoggerMock() })).rejects.toThrow(
       'Unknown source id: unknown',
     );
     expect(ingestBatchMock).not.toHaveBeenCalled();
@@ -174,7 +175,7 @@ describe('handleBatchIngestJob', () => {
     });
 
     const job = { data: { sourceId: 'remoteok' } } as Job<SourceIngestJobData>;
-    await expect(handleBatchIngestJob(job, { db: {} as Database, logger: createLoggerMock() })).rejects.toThrow(
+    await expect(handleBatchIngestJob(job, { db: stub<Database>({}), logger: createLoggerMock() })).rejects.toThrow(
       '[source.ingest:remoteok] db failed',
     );
   });
@@ -193,7 +194,7 @@ describe('handleBatchIngestJob', () => {
 
     const job = { data: { sourceId: 'hh' } } as Job<SourceIngestJobData>;
 
-    await expect(handleBatchIngestJob(job, { db: {} as Database, logger: createLoggerMock() })).rejects.toThrow(
+    await expect(handleBatchIngestJob(job, { db: stub<Database>({}), logger: createLoggerMock() })).rejects.toThrow(
       'Source hh is not a batch source',
     );
     expect(ingestBatchMock).not.toHaveBeenCalled();

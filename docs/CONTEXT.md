@@ -50,8 +50,9 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 ### Unified Orchestration
 
 - Worker is the only production orchestrator for source polling and lifecycle jobs
-- `source.ingest` runs batch sources from worker source catalog (`remoteok`, `weworkremotely`)
+- `source.ingest` runs batch sources from worker source catalog (`remoteok`, `weworkremotely`, `remotive`, `arbeitnow`, `jobicy`, `himalayas`)
 - Source schedule is resolved by worker config/env (`SOURCE_SCHEDULE_<SOURCE_ID>`) with fallback to source or parser manifest schedule
+- Scheduler isolates per-source setup failures; one broken source does not block scheduling for others
 - Worker source catalog is the single source-of-truth for batch and workflow sources
 - `@opencruit/ingestion` is a pure processing library (no parser imports, no CLI path)
 - `source.gc` applies archive/delete retention for all sources using per-source policy defaults
@@ -62,9 +63,8 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 - Every job emits lifecycle events: `job_started`, `job_completed`, `job_failed`
 - `traceId` is attached to every job payload and propagated to child HH jobs
 - Persistent source health state is stored in PostgreSQL `source_health`
-- Logging wrappers:
-  - `withTrace(job)` for trace propagation
-  - `withLogger({...})` for consistent lifecycle events
+- Observability is attached through worker event hooks (`active`, `completed`, `failed`), not through handler wrappers
+- `withTrace(job)` is still used in HH fan-out handlers to guarantee trace propagation into child jobs
 - Config:
   - `LOG_LEVEL` (default `info`)
   - `LOG_SERVICE_NAME` (default `opencruit-worker`)
@@ -161,6 +161,10 @@ Used for durable operational visibility beyond ephemeral logs.
 - `hh`: archive after 4 days without visibility (`last_seen_at`), delete archived/missing after 30 days
 - `remoteok`: archive after 7 days, delete archived/missing after 30 days
 - `weworkremotely`: archive after 7 days, delete archived/missing after 30 days
+- `remotive`: archive after 7 days, delete archived/missing after 30 days
+- `arbeitnow`: archive after 7 days, delete archived/missing after 30 days
+- `jobicy`: archive after 7 days, delete archived/missing after 30 days
+- `himalayas`: archive after 7 days, delete archived/missing after 30 days
 - unknown source fallback: archive 7 days, delete 30 days
 
 ## Implementation Status
@@ -187,4 +191,8 @@ packages/
     hh/                       # @opencruit/parser-hh
     remoteok/                 # @opencruit/parser-remoteok
     weworkremotely/           # @opencruit/parser-weworkremotely
+    remotive/                 # @opencruit/parser-remotive
+    arbeitnow/                # @opencruit/parser-arbeitnow
+    jobicy/                   # @opencruit/parser-jobicy
+    himalayas/                # @opencruit/parser-himalayas
 ```

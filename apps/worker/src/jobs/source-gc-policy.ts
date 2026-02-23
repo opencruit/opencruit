@@ -5,26 +5,46 @@ export interface SourceGcPolicy {
 }
 
 const DEFAULT_POLICY: SourceGcPolicy = {
-  archiveAfterDays: 7,
+  archiveAfterDays: 14,
   archivedRecheckDays: 30,
-  deleteAfterDays: 30,
+  deleteAfterDays: 90,
 };
 
 const SOURCE_POLICIES: Record<string, SourceGcPolicy> = {
   hh: {
-    archiveAfterDays: 4,
+    archiveAfterDays: 10,
     archivedRecheckDays: 30,
-    deleteAfterDays: 30,
+    deleteAfterDays: 60,
   },
   remoteok: {
-    archiveAfterDays: 7,
+    archiveAfterDays: 14,
     archivedRecheckDays: 30,
-    deleteAfterDays: 30,
+    deleteAfterDays: 90,
   },
   weworkremotely: {
-    archiveAfterDays: 7,
+    archiveAfterDays: 14,
     archivedRecheckDays: 30,
-    deleteAfterDays: 30,
+    deleteAfterDays: 90,
+  },
+  remotive: {
+    archiveAfterDays: 10,
+    archivedRecheckDays: 30,
+    deleteAfterDays: 60,
+  },
+  arbeitnow: {
+    archiveAfterDays: 21,
+    archivedRecheckDays: 30,
+    deleteAfterDays: 90,
+  },
+  jobicy: {
+    archiveAfterDays: 30,
+    archivedRecheckDays: 45,
+    deleteAfterDays: 120,
+  },
+  himalayas: {
+    archiveAfterDays: 14,
+    archivedRecheckDays: 30,
+    deleteAfterDays: 90,
   },
 };
 

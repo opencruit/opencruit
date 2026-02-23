@@ -3,6 +3,7 @@ import type { Job, Queue } from 'bullmq';
 import { describe, expect, it, vi } from 'vitest';
 import { handleHhRefreshJob } from '../src/jobs/hh-refresh.js';
 import type { HhHydrateJobData, HhRefreshJobData } from '../src/queues.js';
+import { stub } from './test-helpers.js';
 
 function createDbMock() {
   const limit = vi.fn().mockResolvedValue([{ externalId: 'hh:123' }]);
@@ -16,10 +17,10 @@ function createDbMock() {
   const update = vi.fn().mockReturnValue({ set });
 
   return {
-    db: {
+    db: stub<Database>({
       select,
       update,
-    } as unknown as Database,
+    }),
     select,
     update,
   };
@@ -29,7 +30,7 @@ describe('handleHhRefreshJob trace propagation', () => {
   it('sets trace id and forwards it to hydrate job data', async () => {
     const { db } = createDbMock();
     const add = vi.fn().mockResolvedValue(undefined);
-    const hydrateQueue = { add } as unknown as Queue<HhHydrateJobData>;
+    const hydrateQueue = stub<Queue<HhHydrateJobData>>({ add });
 
     const job = { data: { batchSize: 1 } } as Job<HhRefreshJobData>;
 
