@@ -14,6 +14,7 @@ export const load: PageServerLoad = async ({ params }) => {
   return {
     job: {
       externalId: row.externalId,
+      sourceId: row.sourceId,
       url: row.url,
       title: row.title,
       company: row.company,

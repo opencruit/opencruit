@@ -2,8 +2,24 @@
   import type { PageData } from './$types';
   import { Button } from '$lib/components/ui/button/index.js';
 
+  const sourceLabels: Record<string, string> = {
+    hh: 'HeadHunter',
+    remoteok: 'RemoteOK',
+    weworkremotely: 'WeWorkRemotely',
+    remotive: 'Remotive',
+    arbeitnow: 'Arbeitnow',
+    jobicy: 'Jobicy',
+    himalayas: 'Himalayas',
+    adzuna: 'Adzuna',
+    jooble: 'Jooble',
+    greenhouse: 'Greenhouse',
+    lever: 'Lever',
+    smartrecruiters: 'SmartRecruiters',
+  };
+
   let { data }: { data: PageData } = $props();
   let job = $derived(data.job);
+  let sourceLabel = $derived(sourceLabels[job.sourceId] ?? job.sourceId);
 </script>
 
 <svelte:head>
@@ -29,7 +45,7 @@
     </div>
   </div>
 
-  <div class="mt-5 flex flex-wrap gap-2.5 text-sm">
+  <div class="mt-5 flex flex-wrap items-center gap-2.5 text-sm">
     {#if job.location}
       <span class="text-muted-foreground">{job.location}</span>
     {/if}
@@ -38,6 +54,9 @@
         Remote
       </span>
     {/if}
+    <span class="rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-xs text-blue-400">
+      {sourceLabel}
+    </span>
     {#if job.salary}
       <span class="font-medium text-foreground">
         {#if job.salary.min && job.salary.max}

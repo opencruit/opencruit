@@ -2,7 +2,7 @@
 
 ## Project
 
-Open-source job aggregator platform with AI-powered matching. AGPL-3.0 licensed.
+Open-source job aggregator platform with AI-powered matching. Apache-2.0 licensed.
 See `VISION.md` for full product direction and business model.
 
 ## Tech Stack
@@ -18,7 +18,7 @@ See `VISION.md` for full product direction and business model.
 | ORM             | Drizzle                 |
 | Linter          | ESLint 10 (flat config) |
 | Formatter       | Prettier                |
-| License         | AGPL-3.0-only           |
+| License         | Apache-2.0           |
 
 ## Monorepo Structure
 
@@ -150,7 +150,7 @@ Not microservices. Two app processes + infra services. One codebase.
 
 ### Self-Hosting
 
-- Single `docker compose up -d --build` — all features available (AGPL, not open-core)
+- Single `docker compose up -d --build` — all features available (Apache-2.0, not open-core)
 - Local hybrid dev uses `docker-compose.dev.yml` for host Postgres port (`pnpm dev:infra` + `pnpm dev:web`)
 - Migrations run as one-shot `migrate` service (`pnpm --filter @opencruit/db db:migrate`) before `worker`/`web`
 - `db:push` is local prototyping only; production path is versioned SQL migrations in `packages/db/drizzle`

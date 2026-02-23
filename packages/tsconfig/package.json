@@ -2,7 +2,7 @@
   "name": "@opencruit/tsconfig",
   "version": "0.0.0",
   "private": true,
-  "license": "AGPL-3.0-only",
+  "license": "Apache-2.0",
   "files": [
     "base.json",
     "node.json",

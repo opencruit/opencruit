@@ -2,7 +2,7 @@
   "name": "@opencruit/worker",
   "version": "0.0.0",
   "private": true,
-  "license": "AGPL-3.0-only",
+  "license": "Apache-2.0",
   "type": "module",
   "bin": {
     "opencruit-worker": "./bin/opencruit-worker"
