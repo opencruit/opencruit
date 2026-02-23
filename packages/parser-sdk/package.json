@@ -5,16 +5,18 @@
   "license": "AGPL-3.0-only",
   "type": "module",
   "exports": {
-    ".": {
-      "types": "./src/index.ts"
-    }
+    ".": "./src/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "zod": "catalog:"
+  },
   "devDependencies": {
     "@opencruit/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
     "typescript": "catalog:"
   }
 }

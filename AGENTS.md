@@ -28,7 +28,9 @@ packages/
   tsconfig/                   # Shared TS configs (base, node, svelte)
   eslint-config/              # Shared ESLint 10 flat configs (base, svelte)
   types/                      # @opencruit/types — shared type definitions
-  parsers/                    # Parser plugins (each subdirectory = one parser)
+  parser-sdk/                 # @opencruit/parser-sdk — parser contract, types, Zod schema
+  parsers/
+    remoteok/                 # @opencruit/parser-remoteok — RemoteOK JSON API parser
 ```
 
 ## Commands
@@ -37,6 +39,7 @@ packages/
 pnpm install                  # Install dependencies
 pnpm lint                     # ESLint across all packages
 pnpm typecheck                # TypeScript check (tsc --noEmit) across all packages
+pnpm test                     # Run tests (vitest) across all packages
 pnpm format                   # Prettier write
 pnpm format:check             # Prettier check
 pnpm build                    # Build all packages
@@ -121,7 +124,7 @@ Use `catalog:` protocol — all dependency versions defined in `pnpm-workspace.y
 
 Keep project documentation up to date as you work:
 
-- Update `AGENTS.md` when monorepo structure, commands, conventions, or architecture decisions change
+- Update `AGENTS.md` (symlinked to `CLAUDE.md`) when monorepo structure, commands, conventions, or architecture decisions change
 - Update `docs/CONTEXT.md` when new decisions are made, approaches change, or items become outdated
 - Remove stale/incorrect information — do not leave outdated docs behind
 - Add new sections when significant architectural decisions are made

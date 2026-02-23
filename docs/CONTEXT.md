@@ -6,7 +6,7 @@
 
 - Parsers are standalone HTTP services with 3 endpoints: `/manifest`, `/health`, `/parse`
 - Language-agnostic contract — any language can implement it (Node, Rust, Go)
-- Node.js parsers use `@opencruit/parser-sdk` with `defineParser()` helper
+- Node.js parsers use `@opencruit/parser-sdk` for types, Zod schema validation, and utilities
 - `/parse` returns NDJSON stream for large result sets
 - Orchestrator (BullMQ + Redis) manages scheduling, retries, concurrency
 
@@ -46,17 +46,17 @@
 ## Parser SDK Approach
 
 - Build SDK iteratively by writing real parsers, not upfront in a vacuum
-- First parser: RemoteOK (JSON API, simplest)
+- First parser: RemoteOK (JSON API, simplest) — **done**, fixture-based tests passing
 - Second: Greenhouse or Lever (HTML parsing)
 - Third: something with headless browser (Playwright)
 - After 3 parsers — stabilize SDK, publish to npm
+- SDK currently exports: `RawJob` type, `rawJobSchema` (Zod), `validateRawJobs()` utility
 
 ### Parser Testing
 
 - Fixture-based tests: saved HTML/JSON snapshots, parser runs against them
 - Schema validation: Zod schema from SDK validates every output
 - Integration tests: real HTTP requests, run on schedule (not every PR)
-- SDK provides `testParser()` utility
 
 ## Packages That Will Be Published to npm
 
@@ -78,6 +78,8 @@
 | SvelteKit         | 2.x           |
 | Tailwind CSS      | 4.x           |
 | Drizzle ORM       | 0.x           |
+| Vitest            | 4.0.18        |
+| Zod               | 4.3.6         |
 | License           | AGPL-3.0-only |
 
 ## Monorepo Structure (current)
@@ -87,7 +89,9 @@ packages/
   tsconfig/         # shared TS configs
   eslint-config/    # shared ESLint 10 configs (base, svelte)
   types/            # @opencruit/types
-  parsers/          # parser plugins (when created)
+  parser-sdk/       # @opencruit/parser-sdk — types, Zod schema, utilities
+  parsers/
+    remoteok/       # @opencruit/parser-remoteok — RemoteOK JSON API parser
 apps/               # deployable services (when created)
 ```
 

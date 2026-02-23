@@ -51,7 +51,11 @@ export async function parse(): Promise<ParseResult> {
   const data = (await res.json()) as RemoteOKJob[];
 
   // First element is a legal notice, skip it
-  const jobs = data.slice(1).map(toRawJob);
+  // Filter out incomplete jobs (empty title or company)
+  const jobs = data
+    .slice(1)
+    .filter((job) => job.position && job.company)
+    .map(toRawJob);
 
   return { jobs };
 }
