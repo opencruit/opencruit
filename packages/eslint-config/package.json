@@ -9,12 +9,12 @@
     "./svelte": "./svelte.mjs"
   },
   "dependencies": {
-    "@eslint/js": "10.0.1",
-    "eslint": "10.0.1",
-    "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-svelte": "3.15.0",
-    "globals": "17.3.0",
-    "svelte-eslint-parser": "1.4.1",
-    "typescript-eslint": "8.56.0"
+    "@eslint/js": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-prettier": "catalog:",
+    "eslint-plugin-svelte": "catalog:",
+    "globals": "catalog:",
+    "svelte-eslint-parser": "catalog:",
+    "typescript-eslint": "catalog:"
   }
 }

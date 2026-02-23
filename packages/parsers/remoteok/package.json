@@ -1,5 +1,5 @@
 {
-  "name": "@opencruit/types",
+  "name": "@opencruit/parser-remoteok",
   "version": "0.0.0",
   "private": true,
   "license": "AGPL-3.0-only",
@@ -11,10 +11,14 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
+    "@opencruit/parser-sdk": "workspace:*",
     "@opencruit/tsconfig": "workspace:*",
-    "typescript": "catalog:"
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

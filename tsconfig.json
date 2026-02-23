@@ -1,4 +1,8 @@
 {
   "files": [],
-  "references": [{ "path": "packages/types" }]
+  "references": [
+    { "path": "packages/types" },
+    { "path": "packages/parser-sdk" },
+    { "path": "packages/parsers/remoteok" }
+  ]
 }
