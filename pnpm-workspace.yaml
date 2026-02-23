@@ -39,3 +39,4 @@ catalog:
   fast-xml-parser: ^5.3.7
   bullmq: ^5.70.1
   ioredis: ^5.9.3
+  pino: ^10.3.1

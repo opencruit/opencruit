@@ -15,7 +15,8 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 │  │  • UI / SSR      │   │  • hh.index          │ │
 │  │  • API routes    │   │  • hh.hydrate        │ │
 │  │  • Search        │   │  • hh.refresh        │ │
-│  │                  │   │  • hh.gc             │ │
+│  │                  │   │  • source.ingest     │ │
+│  │                  │   │  • source.gc         │ │
 │  └────────┬─────────┘   └──────────┬────────────┘ │
 │           │      Shared modules    │              │
 │           │  • @opencruit/db       │              │
@@ -46,6 +47,27 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 - **Simple parsers** implement `Parser` interface from `@opencruit/parser-sdk` (`remoteok`, `weworkremotely`)
 - **HH parser** is a helper package (`@opencruit/parser-hh`) used by worker jobs; it does not expose `parse() => RawJob[]`
 
+### Unified Orchestration
+
+- Worker is the only production orchestrator for source polling and lifecycle jobs
+- `source.ingest` runs batch parsers (`remoteok`, `weworkremotely`) by parser id via worker registry
+- Parser schedule is resolved by worker config/env (`PARSER_SCHEDULE_<PARSER_ID>`) with fallback to `parser.manifest.schedule`
+- `@opencruit/ingestion` is a pure processing library (no parser imports, no CLI path)
+- `source.gc` applies archive/delete retention for all sources using per-source policy defaults
+
+### Worker Debug Observability v1
+
+- Worker logs are structured JSON lines via `pino`
+- Every job emits lifecycle events: `job_started`, `job_completed`, `job_failed`
+- `traceId` is attached to every job payload and propagated to child HH jobs
+- Logging wrappers:
+  - `withTrace(job)` for trace propagation
+  - `withLogger({...})` for consistent lifecycle events
+- Config:
+  - `LOG_LEVEL` (default `info`)
+  - `LOG_SERVICE_NAME` (default `opencruit-worker`)
+- Debug runbook: `docs/WORKER_LOGGING.md`
+
 ### HH Flow (Step 4)
 
 1. `hh.index`
@@ -63,9 +85,10 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 - Finds due HH jobs where `next_check_at <= now()`
 - Re-enqueues `hh.hydrate` for re-check
 
-4. `hh.gc`
-- Archives stale active HH jobs not seen recently
-- Deletes long-retained archived/missing HH jobs
+4. `source.gc`
+- Archives stale active jobs for all sources
+- Deletes long-retained archived/missing jobs for all sources
+- Uses per-source policy (HH stricter than generic API parsers)
 
 ### Shared HH HTTP Guardrails
 
@@ -84,6 +107,7 @@ Stages:
 - store (upsert with refresh metadata)
 
 `content_hash` is computed from normalized content fields and used to skip heavy writes when unchanged during HH hydrate checks.
+`compute_next_check_at` and `content_hash` helpers are exported and reused by worker jobs.
 
 ## Data Model
 
@@ -117,6 +141,13 @@ Generic cursor table for incremental polling:
 - `14-30 days`: every 72h
 - `> 30 days`: every 7d
 - `archived/missing`: next check in 30d
+
+## GC Policy (defaults)
+
+- `hh`: archive after 4 days without visibility (`last_seen_at`), delete archived/missing after 30 days
+- `remoteok`: archive after 7 days, delete archived/missing after 30 days
+- `weworkremotely`: archive after 7 days, delete archived/missing after 30 days
+- unknown source fallback: archive 7 days, delete 30 days
 
 ## Implementation Status
 

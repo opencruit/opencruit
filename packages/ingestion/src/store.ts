@@ -23,7 +23,7 @@ export function computeContentHash(title: string, description: string, salaryMin
  * Compute next_check_at based on job age (refresh policy).
  * <2d: 12h, 2-14d: 24h, 14-30d: 72h, >30d: 7d
  */
-function computeNextCheckAt(postedAt: Date | null | undefined): Date {
+export function computeNextCheckAt(postedAt: Date | null | undefined): Date {
   const now = Date.now();
   const ageMs = postedAt ? now - postedAt.getTime() : 0;
   const ageHours = ageMs / (1000 * 60 * 60);

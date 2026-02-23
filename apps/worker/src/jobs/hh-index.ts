@@ -4,6 +4,7 @@ import { sourceCursors, type Database } from '@opencruit/db';
 import { HhClient, buildSegmentKey, shouldSplit, splitTimeSlice } from '@opencruit/parser-hh';
 import type { HhSearchVacancyItem, TimeSlice } from '@opencruit/parser-hh';
 import type { HhHydrateJobData, HhIndexJobData } from '../queues.js';
+import { withTrace } from '../observability/with-trace.js';
 
 const SOURCE_ID = 'hh';
 const DEFAULT_LOOKBACK_DAYS = 30;
@@ -144,6 +145,7 @@ async function enqueueHydrateItems(
   items: HhSearchVacancyItem[],
   hydrateQueue: Queue<HhHydrateJobData>,
   reason: HhHydrateJobData['reason'],
+  traceId: string,
 ): Promise<number> {
   const seenVacancyIds = new Set<string>();
   let enqueued = 0;
@@ -160,6 +162,7 @@ async function enqueueHydrateItems(
       {
         vacancyId: item.id,
         reason,
+        traceId,
       },
       {
         jobId: `hh-hydrate-${reason}-${item.id}`,
@@ -180,6 +183,7 @@ async function enqueueHydrateItems(
 }
 
 export async function handleHhIndexJob(job: Job<HhIndexJobData>, deps: HhIndexJobDeps): Promise<HhIndexResult> {
+  const traceId = withTrace(job);
   const depth = job.data.depth ?? 0;
   const slice = await resolveWindow(job.data, deps.db);
   const segmentKey = buildSegmentKey(job.data.professionalRole, slice);
@@ -202,6 +206,7 @@ export async function handleHhIndexJob(job: Job<HhIndexJobData>, deps: HhIndexJo
         dateFromIso: left.dateFromIso,
         dateToIso: left.dateToIso,
         depth: depth + 1,
+        traceId,
       },
       {
         attempts: 4,
@@ -221,6 +226,7 @@ export async function handleHhIndexJob(job: Job<HhIndexJobData>, deps: HhIndexJo
         dateFromIso: right.dateFromIso,
         dateToIso: right.dateToIso,
         depth: depth + 1,
+        traceId,
       },
       {
         attempts: 4,
@@ -242,7 +248,7 @@ export async function handleHhIndexJob(job: Job<HhIndexJobData>, deps: HhIndexJo
   }
 
   const pagesToFetch = Math.min(page0.pages, MAX_PAGE_DEPTH);
-  let enqueued = await enqueueHydrateItems(page0.items, deps.hydrateQueue, 'new');
+  let enqueued = await enqueueHydrateItems(page0.items, deps.hydrateQueue, 'new', traceId);
 
   for (let page = 1; page < pagesToFetch; page += 1) {
     const response = await deps.client.searchVacancies({
@@ -253,7 +259,7 @@ export async function handleHhIndexJob(job: Job<HhIndexJobData>, deps: HhIndexJo
       perPage: PER_PAGE,
     });
 
-    enqueued += await enqueueHydrateItems(response.items, deps.hydrateQueue, 'new');
+    enqueued += await enqueueHydrateItems(response.items, deps.hydrateQueue, 'new', traceId);
   }
 
   await upsertCursor(

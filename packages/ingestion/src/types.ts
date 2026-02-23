@@ -1,5 +1,4 @@
 import type { ValidatedRawJob } from '@opencruit/parser-sdk';
-import type { Database } from '@opencruit/db';
 
 /**
  * After normalization: all text fields cleaned, tags lowercased/deduped,
@@ -26,10 +25,10 @@ export type DedupOutcome =
   | { action: 'skip'; job: FingerprintedJob; reason: string };
 
 /**
- * Per-stage counts for observability.
+ * Per-stage counts for observability in a single batch run.
  */
-export interface StageStats {
-  parsed: number;
+export interface BatchStageStats {
+  received: number;
   validated: number;
   validationDropped: number;
   normalized: number;
@@ -41,31 +40,20 @@ export interface StageStats {
 }
 
 /**
- * Result of ingesting a single parser.
+ * Result of ingesting a batch of raw jobs.
  */
-export interface ParserIngestionResult {
-  parserId: string;
-  parserName: string;
-  stats: StageStats;
+export interface BatchIngestionResult {
+  sourceId?: string;
+  stats: BatchStageStats;
   errors: string[];
   durationMs: number;
 }
 
 /**
- * Result of ingesting all parsers.
+ * Options for ingesting a batch.
  */
-export interface IngestionResult {
-  parsers: ParserIngestionResult[];
-  totalStored: number;
-  totalErrors: number;
-  durationMs: number;
-}
-
-/**
- * Options for the ingest function.
- */
-export interface IngestionOptions {
-  db: Database;
+export interface IngestBatchOptions {
+  sourceId?: string;
   logger?: IngestionLogger;
 }
 

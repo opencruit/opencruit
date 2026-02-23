@@ -2,6 +2,7 @@ import { and, asc, eq, inArray, isNotNull, lte } from 'drizzle-orm';
 import type { Job, Queue } from 'bullmq';
 import { jobs, type Database } from '@opencruit/db';
 import type { HhHydrateJobData, HhRefreshJobData } from '../queues.js';
+import { withTrace } from '../observability/with-trace.js';
 
 const SOURCE_ID = 'hh';
 const DEFAULT_BATCH_SIZE = 500;
@@ -36,6 +37,7 @@ function clampBatchSize(value: number | undefined): number {
 }
 
 export async function handleHhRefreshJob(job: Job<HhRefreshJobData>, deps: HhRefreshJobDeps): Promise<HhRefreshResult> {
+  const traceId = withTrace(job);
   const now = new Date();
   const batchSize = clampBatchSize(job.data.batchSize);
 
@@ -80,6 +82,7 @@ export async function handleHhRefreshJob(job: Job<HhRefreshJobData>, deps: HhRef
       {
         vacancyId,
         reason: 'refresh',
+        traceId,
       },
       {
         jobId: `hh-hydrate-refresh-${vacancyId}`,

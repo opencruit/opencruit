@@ -1,5 +1,5 @@
 // Pipeline
-export { ingest } from './pipeline.js';
+export { ingestBatch } from './pipeline.js';
 
 // Individual stages
 export { validate } from './validate.js';
@@ -13,16 +13,15 @@ export {
 } from './normalize.js';
 export { computeFingerprint, fingerprintJob, fingerprintJobs } from './fingerprint.js';
 export { dedup } from './dedup.js';
-export { store, computeContentHash } from './store.js';
+export { store, computeContentHash, computeNextCheckAt } from './store.js';
 
 // Types
 export type {
   NormalizedJob,
   FingerprintedJob,
   DedupOutcome,
-  StageStats,
-  ParserIngestionResult,
-  IngestionResult,
-  IngestionOptions,
+  BatchStageStats,
+  BatchIngestionResult,
+  IngestBatchOptions,
   IngestionLogger,
 } from './types.js';

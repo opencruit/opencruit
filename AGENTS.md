@@ -25,7 +25,7 @@ See `VISION.md` for full product direction and business model.
 ```
 apps/
   web/                        # @opencruit/web — SvelteKit frontend (Svelte 5, Tailwind 4, shadcn-svelte)
-  worker/                     # @opencruit/worker — BullMQ worker process (HH index/hydrate/refresh/gc)
+  worker/                     # @opencruit/worker — BullMQ worker process (source.ingest + HH + source.gc)
 packages/
   tsconfig/                   # Shared TS configs (base, node, svelte)
   eslint-config/              # Shared ESLint 10 flat configs (base, svelte)
@@ -50,8 +50,7 @@ pnpm format                   # Prettier write
 pnpm format:check             # Prettier check
 pnpm build                    # Build all packages
 pnpm dev                      # Dev mode
-pnpm ingest                   # Run ingestion package (RemoteOK + WWR) → write to DB
-pnpm worker                   # Run BullMQ worker (HH index/hydrate/refresh/gc)
+pnpm worker                   # Run BullMQ worker (source.ingest + hh.* + source.gc)
 ```
 
 ## Conventions
@@ -109,7 +108,10 @@ Not microservices. Two app processes + two infra. One codebase.
 
 - Parsers are npm packages imported by worker — not HTTP services, not separate containers
 - API/HTML parsers implement `Parser` from `@opencruit/parser-sdk` (RemoteOK, WWR)
+- Simple parsers are orchestrated by worker job `source.ingest` (schedule override via worker env, fallback to `manifest.schedule`)
 - HH integration uses 3-phase worker jobs (`hh.index`, `hh.hydrate`, `hh.refresh`) via `@opencruit/parser-hh` helpers
+- Lifecycle cleanup is handled by generic worker job `source.gc` with per-source retention policy
+- Worker emits structured JSON logs (pino) with `traceId` propagation via `withLogger`/`withTrace`
 - Light parsers (API/HTML) in one worker pool, Playwright parsers in heavy pool (when needed)
 - Ingestion pipeline: normalize → deduplicate → enrich → store → emit event
 - Deduplication: fingerprint (sha256 of company+title+location) + fuzzy matching (pg_trgm)

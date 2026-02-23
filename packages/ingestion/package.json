@@ -4,23 +4,17 @@
   "private": true,
   "license": "AGPL-3.0-only",
   "type": "module",
-  "bin": {
-    "opencruit-ingest": "./bin/opencruit-ingest"
-  },
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "ingest": "./bin/opencruit-ingest"
+    "test": "vitest run"
   },
   "dependencies": {
     "@opencruit/parser-sdk": "workspace:*",
     "@opencruit/db": "workspace:*",
-    "@opencruit/parser-remoteok": "workspace:*",
-    "@opencruit/parser-weworkremotely": "workspace:*",
     "drizzle-orm": "catalog:"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { Database } from '@opencruit/db';
 import type { DedupOutcome, NormalizedJob } from '../src/types.js';
-import { store } from '../src/store.js';
+import { computeNextCheckAt, store } from '../src/store.js';
 
 function makeOutcome(
   action: 'insert' | 'update',
@@ -40,6 +40,26 @@ function mockDb() {
 }
 
 describe('store', () => {
+  it('computes next check interval by job age', () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-02-23T12:00:00.000Z'));
+
+      const underTwoDays = new Date('2026-02-22T00:00:00.000Z');
+      const underTwoWeeks = new Date('2026-02-18T00:00:00.000Z');
+      const underMonth = new Date('2026-02-01T00:00:00.000Z');
+      const oldJob = new Date('2025-12-31T00:00:00.000Z');
+
+      expect(computeNextCheckAt(underTwoDays).toISOString()).toBe('2026-02-24T00:00:00.000Z');
+      expect(computeNextCheckAt(underTwoWeeks).toISOString()).toBe('2026-02-24T12:00:00.000Z');
+      expect(computeNextCheckAt(underMonth).toISOString()).toBe('2026-02-26T12:00:00.000Z');
+      expect(computeNextCheckAt(oldJob).toISOString()).toBe('2026-03-02T12:00:00.000Z');
+      expect(computeNextCheckAt(undefined).toISOString()).toBe('2026-02-24T00:00:00.000Z');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('returns zero counts when no upsertable outcomes exist', async () => {
     const { db, insert } = mockDb();
     const result = await store([], db);

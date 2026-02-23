@@ -18,9 +18,13 @@
     "@opencruit/db": "workspace:*",
     "@opencruit/ingestion": "workspace:*",
     "@opencruit/parser-hh": "workspace:*",
+    "@opencruit/parser-remoteok": "workspace:*",
+    "@opencruit/parser-sdk": "workspace:*",
+    "@opencruit/parser-weworkremotely": "workspace:*",
     "bullmq": "catalog:",
     "drizzle-orm": "catalog:",
-    "ioredis": "catalog:"
+    "ioredis": "catalog:",
+    "pino": "catalog:"
   },
   "devDependencies": {
     "@opencruit/tsconfig": "workspace:*",

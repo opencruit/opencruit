@@ -2,8 +2,10 @@ import { and, eq } from 'drizzle-orm';
 import type { Job } from 'bullmq';
 import { jobs, type Database } from '@opencruit/db';
 import { HhClient, HhHttpError, mapVacancyToRawJob } from '@opencruit/parser-hh';
-import { computeContentHash, dedup, fingerprintJobs, normalize, store, validate } from '@opencruit/ingestion';
+import { computeContentHash, computeNextCheckAt, ingestBatch, normalize, validate } from '@opencruit/ingestion';
+import type { Logger } from 'pino';
 import type { HhHydrateJobData } from '../queues.js';
+import { createIngestionLogger } from '../observability/ingestion-logger.js';
 
 const SOURCE_ID = 'hh';
 const ARCHIVED_NEXT_CHECK_DAYS = 30;
@@ -11,6 +13,7 @@ const ARCHIVED_NEXT_CHECK_DAYS = 30;
 export interface HhHydrateJobDeps {
   client: HhClient;
   db: Database;
+  logger: Logger;
 }
 
 export interface HhHydrateResult {
@@ -21,25 +24,6 @@ export interface HhHydrateResult {
 
 function addDays(date: Date, days: number): Date {
   return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
-}
-
-function computeNextCheckAt(postedAt: Date | null | undefined): Date {
-  const now = Date.now();
-  const ageMs = postedAt ? now - postedAt.getTime() : 0;
-  const ageHours = ageMs / (1000 * 60 * 60);
-
-  let intervalHours: number;
-  if (ageHours < 48) {
-    intervalHours = 12;
-  } else if (ageHours < 14 * 24) {
-    intervalHours = 24;
-  } else if (ageHours < 30 * 24) {
-    intervalHours = 72;
-  } else {
-    intervalHours = 7 * 24;
-  }
-
-  return new Date(now + intervalHours * 60 * 60 * 1000);
 }
 
 async function touchStatus(
@@ -64,6 +48,14 @@ async function touchStatus(
 export async function handleHhHydrateJob(job: Job<HhHydrateJobData>, deps: HhHydrateJobDeps): Promise<HhHydrateResult> {
   const now = new Date();
   const externalId = `${SOURCE_ID}:${job.data.vacancyId}`;
+  const ingestionLogger = createIngestionLogger(
+    deps.logger.child({
+      queue: 'hh.hydrate',
+      sourceId: SOURCE_ID,
+      vacancyId: job.data.vacancyId,
+      traceId: job.data.traceId,
+    }),
+  );
 
   try {
     const vacancy = await deps.client.getVacancy(job.data.vacancyId);
@@ -78,8 +70,7 @@ export async function handleHhHydrateJob(job: Job<HhHydrateJobData>, deps: HhHyd
       };
     }
 
-    const normalizedJobs = valid.map(normalize);
-    const normalized = normalizedJobs[0]!;
+    const normalized = normalize(valid[0]!);
     const nextCheckAt = vacancy.archived ? addDays(now, ARCHIVED_NEXT_CHECK_DAYS) : computeNextCheckAt(normalized.postedAt);
     const status: 'active' | 'archived' = vacancy.archived ? 'archived' : 'active';
 
@@ -105,14 +96,18 @@ export async function handleHhHydrateJob(job: Job<HhHydrateJobData>, deps: HhHyd
       };
     }
 
-    const fingerprinted = fingerprintJobs(normalizedJobs);
-    const outcomes = await dedup(fingerprinted, deps.db);
-    const storeResult = await store(outcomes, deps.db);
+    const ingestResult = await ingestBatch([rawJob], deps.db, {
+      sourceId: SOURCE_ID,
+      logger: ingestionLogger,
+    });
+    if (ingestResult.errors.length > 0) {
+      throw new Error(`HH ingest failed for vacancy ${job.data.vacancyId}: ${ingestResult.errors[0]}`);
+    }
 
     await touchStatus(deps.db, externalId, status, now, nextCheckAt);
 
     return {
-      upserted: storeResult.upserted,
+      upserted: ingestResult.stats.upserted,
       status,
       skippedContentWrite: false,
     };

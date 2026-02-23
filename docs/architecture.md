@@ -1,111 +1,84 @@
 # OpenCruit — Architecture Overview
 
-High-level system architecture. For implementation details see `CONTEXT.md`.
+High-level architecture snapshot. For implementation details and status, see `docs/CONTEXT.md`.
 
 ## System Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Web UI (SvelteKit)                   │
-│                   candidate-facing frontend                 │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│                        API Layer                            │
-│              jobs · search · matching · tracker             │
-└─────┬────────────┬───────────────┬──────────────┬───────────┘
-      │            │               │              │
-      ▼            ▼               ▼              ▼
-┌──────────┐ ┌──────────┐ ┌────────────┐ ┌───────────────┐
-│ Job      │ │ AI       │ │ Job Search │ │ Application   │
-│ Ingestion│ │ Services │ │ & Matching │ │ Tracker (CRM) │
-│ Pipeline │ │          │ │            │ │               │
-└────┬─────┘ └──────────┘ └────────────┘ └───────────────┘
-     │
-     ▼
-┌──────────────────────────────────────────────────────────────┐
-│                     Parser Orchestrator                      │
-│              BullMQ · scheduling · retries                   │
-└─────┬──────────┬──────────┬──────────┬──────────────────────┘
-      │          │          │          │
-      ▼          ▼          ▼          ▼
-  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-  │Parser 1│ │Parser 2│ │Parser 3│ │Parser N│   HTTP contract
-  │remoteok│ │  ...   │ │  ...   │ │  ...   │   /manifest
-  └────────┘ └────────┘ └────────┘ └────────┘   /health
-                                                 /parse
-┌─────────────────────────────────────────────────────────────┐
-│                      Data Layer                             │
-│         PostgreSQL · Redis (queues + streams + cache)       │
-└─────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────┐
+│                  Monorepo (one codebase)          │
+│                                                    │
+│  ┌──────────────────┐   ┌───────────────────────┐ │
+│  │    Web App       │   │      Worker           │ │
+│  │    (SvelteKit)   │   │   (BullMQ consumer)   │ │
+│  │                  │   │                       │ │
+│  │  • UI / SSR      │   │  • source.ingest     │ │
+│  │  • API routes    │   │  • hh.index          │ │
+│  │  • Search        │   │  • hh.hydrate        │ │
+│  │                  │   │  • hh.refresh        │ │
+│  │                  │   │  • source.gc         │ │
+│  └────────┬─────────┘   └──────────┬────────────┘ │
+│           │      Shared modules    │              │
+│           │  • @opencruit/db       │              │
+│           │  • @opencruit/ingestion│              │
+│           │  • @opencruit/parser-* │              │
+│           └────────────┬───────────┘              │
+└────────────────────────┼───────────────────────────┘
+                         │
+               ┌─────────┼─────────┐
+               ▼                   ▼
+         ┌──────────┐        ┌──────────┐
+         │ Postgres │        │  Redis   │
+         │ • jobs   │        │ • BullMQ │
+         │ • cursors│        │ • queues │
+         └──────────┘        └──────────┘
 ```
 
 ## Core Components
 
+### Worker Orchestrator
+
+- Single production orchestrator for all source polling and lifecycle jobs.
+- `source.ingest`: runs simple parsers (`remoteok`, `weworkremotely`) on cron.
+- `hh.index` / `hh.hydrate` / `hh.refresh`: HH-specific multi-phase workflow.
+- `source.gc`: generic retention job for archive/delete by source policy.
+- Structured JSON logging via `pino`, with `traceId` propagation (`withLogger` / `withTrace`).
+
 ### Parsers
 
-Standalone HTTP services that scrape/fetch jobs from external sources. Language-agnostic — any runtime that implements the HTTP contract (`/manifest`, `/health`, `/parse`) works.
-
-Three distribution models:
-- **Open** — main repo, public API sources
-- **Private** — separate repo, anti-bot sensitive sources
-- **Community** — external repos, anyone can build and publish
-
-### Parser Orchestrator
-
-Manages parser scheduling, retries, and concurrency. Powered by BullMQ + Redis.
+- Parsers are workspace packages imported by worker (not standalone HTTP services).
+- Simple parsers implement `Parser` from `@opencruit/parser-sdk`.
+- HH parser package provides API client + mapping helpers used by worker jobs.
 
 ### Ingestion Pipeline
 
-Processes raw jobs from parsers through a multi-stage pipeline:
+Processes raw jobs through:
 
 ```
-raw job → normalize → validate → fingerprint → deduplicate → enrich → store → emit event
+raw job -> validate -> normalize -> fingerprint -> dedup -> store
 ```
 
-Deduplication uses 3 tiers: exact ID match, content fingerprint (SHA-256), fuzzy match (pg_trgm).
+- `@opencruit/ingestion` is a pure library reused by worker jobs.
+- Shared utilities: `computeContentHash`, `computeNextCheckAt`.
 
-### Event Bus
+### Data Layer
 
-Redis Streams for async job events (`job.new`, `job.updated`, `job.expired`). Consumer groups decouple downstream services (notifications, search indexer, analytics).
-
-### Search & Matching
-
-MVP: PostgreSQL full-text search (tsvector with weighted ranking). AI-powered matching scores jobs against user profile and resume.
-
-### AI Services
-
-Multi-provider LLM integration (OpenAI, Anthropic, Ollama for self-hosted):
-- Resume analysis and scoring against specific jobs
-- Resume generation tailored to job requirements
-- Job-candidate matching and recommendations
-
-### Application Tracker
-
-Kanban-style CRM for managing job search: status tracking, reminders, follow-ups, conversion analytics.
-
-### Web UI
-
-SvelteKit frontend. Candidate-first: search, match, apply, track.
+- PostgreSQL: primary storage (`jobs`, `source_cursors`).
+- Redis: BullMQ queues and scheduling backend.
 
 ## Infrastructure
 
 ```
 docker compose up
-├── PostgreSQL    — primary data store
-├── Redis         — BullMQ queues + Streams + cache (single instance)
-├── App services  — API + workers + UI
-└── Parsers       — one container per parser
+├── PostgreSQL
+└── Redis
 ```
 
-Single `docker compose up` for self-hosting. One Redis instance handles everything (queues, events, cache).
+Apps run from workspace commands (`pnpm dev`, `pnpm worker`).
 
 ## Data Flow
 
-1. **Orchestrator** triggers parsers on schedule
-2. **Parsers** fetch jobs, return via HTTP (`/parse`)
-3. **Ingestion pipeline** normalizes, deduplicates, stores in PostgreSQL
-4. **Event bus** emits `job.new` / `job.updated` events via Redis Streams
-5. **Search indexer** updates PostgreSQL tsvector index
-6. **AI matching** scores new jobs against user profiles
-7. **Web UI** presents results, user applies and tracks
+1. Worker scheduler enqueues source jobs (`source.ingest`, `hh.index`, `hh.refresh`, `source.gc`)
+2. Source jobs fetch raw vacancies from external platforms
+3. Ingestion pipeline validates, normalizes, deduplicates, stores in PostgreSQL
+4. Refresh/GC maintain lifecycle (`active`, `archived`, `missing`) and retention windows
