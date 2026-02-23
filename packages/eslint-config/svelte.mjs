@@ -17,7 +17,9 @@ export default defineConfig(
         ...globals.node,
       },
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: ['*.config.mjs', '*.config.js', '*.mjs'],
+        },
       },
     },
   },
@@ -28,6 +30,13 @@ export default defineConfig(
         extraFileExtensions: ['.svelte'],
         parser: ts.parser,
       },
+    },
+  },
+  {
+    files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
+    rules: {
+      'svelte/no-navigation-without-resolve': 'off',
+      'svelte/no-at-html-tags': 'warn',
     },
   },
   eslintConfigPrettier,

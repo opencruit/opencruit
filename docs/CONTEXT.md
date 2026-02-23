@@ -43,14 +43,44 @@
 - Single `docker compose up` — PostgreSQL + Redis + app services
 - One Redis for everything (BullMQ queues + Streams + cache)
 
-## Parser SDK Approach
+## Implementation Plan (vertical slice)
 
-- Build SDK iteratively by writing real parsers, not upfront in a vacuum
-- First parser: RemoteOK (JSON API, simplest) — **done**, fixture-based tests passing
-- Second: Greenhouse or Lever (HTML parsing)
-- Third: something with headless browser (Playwright)
-- After 3 parsers — stabilize SDK, publish to npm
-- SDK currently exports: `RawJob` type, `rawJobSchema` (Zod), `validateRawJobs()` utility
+Build one complete path from parser to browser, then widen each layer.
+
+### Step 1 — SvelteKit app (direct parser call)
+
+SvelteKit app calls `parse()` from RemoteOK directly in server load. No database, no Redis.
+Goal: working product in browser, real data, UI components (job card, list, filters).
+
+### Step 2 — PostgreSQL + Drizzle
+
+Add `jobs` table (mirrors `RawJob` + fingerprint, timestamps, source metadata).
+Cron script runs parser → writes to DB. SvelteKit reads from DB instead of API.
+Enables: fast rendering, tsvector search, dedup foundation.
+
+### Step 3 — Ingestion pipeline
+
+normalize → validate (Zod schema) → fingerprint → dedup → store.
+Plain function, no BullMQ yet. Processes `RawJob[]` and writes to DB.
+
+### Step 4 — Orchestrator (BullMQ + Redis)
+
+Only when 2+ parsers exist and scheduling is needed. Until then — cron is enough.
+
+### Deferred (not MVP)
+
+- Redis Streams / events — no consumers yet
+- NDJSON streaming in `/parse` — RemoteOK returns <200 jobs
+- Parser as HTTP service (`/manifest`, `/health`, `/parse`) — parsers stay as functions until orchestrator exists
+- Docker — dev mode first, docker compose before launch
+- Second/third parsers — after pipeline works end-to-end
+
+## Parser SDK
+
+- Build iteratively by writing real parsers
+- First parser: RemoteOK (JSON API) — **done**, fixture-based tests passing
+- SDK exports: `RawJob` type, `rawJobSchema` (Zod), `validateRawJobs()` utility
+- HTTP server wrapper, `defineParser()`, `testParser()` — deferred until orchestrator step
 
 ### Parser Testing
 
@@ -61,7 +91,7 @@
 ## Packages That Will Be Published to npm
 
 - `@opencruit/types` — shared type definitions
-- `@opencruit/parser-sdk` — parser contract + HTTP server + test utilities
+- `@opencruit/parser-sdk` — parser contract + utilities
 
 ## Tech Stack (locked)
 

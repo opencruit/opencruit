@@ -1,0 +1,31 @@
+{
+  "name": "@opencruit/web",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "@opencruit/parser-remoteok": "workspace:*",
+    "@opencruit/parser-sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@opencruit/eslint-config": "workspace:*",
+    "@opencruit/tsconfig": "workspace:*",
+    "@sveltejs/adapter-node": "catalog:",
+    "@sveltejs/kit": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "eslint": "catalog:",
+    "svelte": "catalog:",
+    "svelte-check": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}
