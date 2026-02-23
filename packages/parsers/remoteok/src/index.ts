@@ -1,4 +1,4 @@
-import type { Parser, ParseResult, RawJob } from '@opencruit/parser-sdk';
+import { defineParser, type ParseResult, type RawJob } from '@opencruit/parser-sdk';
 
 const API_URL = 'https://remoteok.com/api';
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -102,7 +102,7 @@ export async function parse(): Promise<ParseResult> {
   return { jobs };
 }
 
-export const remoteOKParser: Parser = {
+export const remoteOKParser = defineParser({
   manifest: {
     id: 'remoteok',
     name: 'RemoteOK',
@@ -110,4 +110,4 @@ export const remoteOKParser: Parser = {
     schedule: '0 */4 * * *',
   },
   parse,
-};
+});

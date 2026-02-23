@@ -44,14 +44,15 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 
 ### Parser Types
 
-- **Simple parsers** implement `Parser` interface from `@opencruit/parser-sdk` (`remoteok`, `weworkremotely`)
-- **HH parser** is a helper package (`@opencruit/parser-hh`) used by worker jobs; it does not expose `parse() => RawJob[]`
+- **Batch parsers** implement `Parser` interface from `@opencruit/parser-sdk` using `defineParser(...)`
+- **Workflow sources** use worker `defineSource(...)` contract for multi-phase orchestration (`hh`)
 
 ### Unified Orchestration
 
 - Worker is the only production orchestrator for source polling and lifecycle jobs
-- `source.ingest` runs batch parsers (`remoteok`, `weworkremotely`) by parser id via worker registry
-- Parser schedule is resolved by worker config/env (`PARSER_SCHEDULE_<PARSER_ID>`) with fallback to `parser.manifest.schedule`
+- `source.ingest` runs batch sources from worker source catalog (`remoteok`, `weworkremotely`)
+- Source schedule is resolved by worker config/env (`SOURCE_SCHEDULE_<SOURCE_ID>`) with fallback to source or parser manifest schedule
+- Worker source catalog is the single source-of-truth for batch and workflow sources
 - `@opencruit/ingestion` is a pure processing library (no parser imports, no CLI path)
 - `source.gc` applies archive/delete retention for all sources using per-source policy defaults
 
@@ -60,6 +61,7 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 - Worker logs are structured JSON lines via `pino`
 - Every job emits lifecycle events: `job_started`, `job_completed`, `job_failed`
 - `traceId` is attached to every job payload and propagated to child HH jobs
+- Persistent source health state is stored in PostgreSQL `source_health`
 - Logging wrappers:
   - `withTrace(job)` for trace propagation
   - `withLogger({...})` for consistent lifecycle events
@@ -133,6 +135,18 @@ Generic cursor table for incremental polling:
 - `last_polled_at`
 - `cursor` (jsonb)
 - `stats` (jsonb)
+
+### `source_health`
+
+Persistent worker health state by `(source_id, stage)`:
+- `status` (`healthy` | `failing`)
+- `last_run_at`, `last_success_at`, `last_error_at`
+- `consecutive_failures`
+- `last_duration_ms`
+- `last_error`
+- `created_at`, `updated_at`
+
+Used for durable operational visibility beyond ephemeral logs.
 
 ## Refresh Policy
 

@@ -8,7 +8,7 @@ export const HH_REFRESH_QUEUE = 'hh.refresh';
 export const SOURCE_GC_QUEUE = 'source.gc';
 
 export interface SourceIngestJobData {
-  parserId: string;
+  sourceId: string;
   traceId?: string;
 }
 

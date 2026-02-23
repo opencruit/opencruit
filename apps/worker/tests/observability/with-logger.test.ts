@@ -25,7 +25,7 @@ describe('withLogger', () => {
       logger,
       queue: 'source.ingest',
       job,
-      context: () => ({ parserId: 'remoteok' }),
+      context: () => ({ sourceId: 'remoteok' }),
       summary: () => ({ upserted: 5 }),
       run: async () => ({ ok: true }),
     });
@@ -38,7 +38,7 @@ describe('withLogger', () => {
     expect(startPayload).toMatchObject({
       event: 'job_started',
       queue: 'source.ingest',
-      parserId: 'remoteok',
+      sourceId: 'remoteok',
     });
 
     const [completedPayload] = vi.mocked(logger.info).mock.calls[1]!;

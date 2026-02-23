@@ -17,7 +17,8 @@ import {
 import { createRedisConnection } from './redis.js';
 import { scheduleAllSources } from './scheduler.js';
 import { createWorkerLogger } from './observability/logger.js';
-import { withLogger } from './observability/with-logger.js';
+import { runSourceJob } from './observability/run-source-job.js';
+import { checkSourceHealthAvailability } from './observability/with-source-health.js';
 
 const DEFAULT_REDIS_URL = 'redis://localhost:6379';
 const DEFAULT_HH_USER_AGENT = 'OpenCruit (dev@opencruit.dev)';
@@ -52,6 +53,16 @@ async function run(): Promise<void> {
   const hhUserAgent = process.env.HH_USER_AGENT ?? DEFAULT_HH_USER_AGENT;
 
   const db = createDatabase(databaseUrl);
+  const sourceHealthEnabled = await checkSourceHealthAvailability(db);
+  if (!sourceHealthEnabled) {
+    logger.warn(
+      {
+        event: 'source_health_disabled',
+      },
+      'Source health table is unavailable; health persistence disabled',
+    );
+  }
+
   const redis = createRedisConnection(redisUrl);
   const queues = createQueues(redis);
 
@@ -69,12 +80,16 @@ async function run(): Promise<void> {
   const sourceIngestWorker = new Worker(
     SOURCE_INGEST_QUEUE,
     (job) =>
-      withLogger({
+      runSourceJob({
+        db,
         logger,
         queue: SOURCE_INGEST_QUEUE,
+        sourceId: job.data.sourceId,
+        stage: 'ingest',
+        healthEnabled: sourceHealthEnabled,
         job,
         context: () => ({
-          parserId: job.data.parserId,
+          sourceId: job.data.sourceId,
         }),
         summary: (result) => ({
           sourceId: result.sourceId,
@@ -98,9 +113,13 @@ async function run(): Promise<void> {
   const indexWorker = new Worker(
     HH_INDEX_QUEUE,
     (job) =>
-      withLogger({
+      runSourceJob({
+        db,
         logger,
         queue: HH_INDEX_QUEUE,
+        sourceId: 'hh',
+        stage: 'index',
+        healthEnabled: sourceHealthEnabled,
         job,
         context: () => ({
           sourceId: 'hh',
@@ -133,9 +152,13 @@ async function run(): Promise<void> {
   const hydrateWorker = new Worker(
     HH_HYDRATE_QUEUE,
     (job) =>
-      withLogger({
+      runSourceJob({
+        db,
         logger,
         queue: HH_HYDRATE_QUEUE,
+        sourceId: 'hh',
+        stage: 'hydrate',
+        healthEnabled: sourceHealthEnabled,
         job,
         context: () => ({
           sourceId: 'hh',
@@ -164,9 +187,13 @@ async function run(): Promise<void> {
   const refreshWorker = new Worker(
     HH_REFRESH_QUEUE,
     (job) =>
-      withLogger({
+      runSourceJob({
+        db,
         logger,
         queue: HH_REFRESH_QUEUE,
+        sourceId: 'hh',
+        stage: 'refresh',
+        healthEnabled: sourceHealthEnabled,
         job,
         context: () => ({
           sourceId: 'hh',
@@ -192,9 +219,13 @@ async function run(): Promise<void> {
   const gcWorker = new Worker(
     SOURCE_GC_QUEUE,
     (job) =>
-      withLogger({
+      runSourceJob({
+        db,
         logger,
         queue: SOURCE_GC_QUEUE,
+        sourceId: job.data.sourceId,
+        stage: 'gc',
+        healthEnabled: sourceHealthEnabled,
         job,
         context: () => ({
           mode: job.data.mode,
@@ -232,12 +263,13 @@ async function run(): Promise<void> {
   }
 
   const schedulerResult = await scheduleAllSources(queues, hhClient);
-  if (schedulerResult.hhSchedulingSucceeded) {
+  if (schedulerResult.workflowErrors.length === 0) {
     logger.info(
       {
         event: 'scheduler_configured',
-        batchParserCount: schedulerResult.batchParserCount,
-        roleCount: schedulerResult.roleCount,
+        scheduledBatchSources: schedulerResult.scheduledBatchSources,
+        scheduledWorkflowSources: schedulerResult.scheduledWorkflowSources,
+        workflowStats: schedulerResult.workflowStats,
       },
       'Scheduler configured',
     );
@@ -245,11 +277,12 @@ async function run(): Promise<void> {
     logger.warn(
       {
         event: 'scheduler_partially_configured',
-        batchParserCount: schedulerResult.batchParserCount,
-        roleCount: schedulerResult.roleCount,
-        hhError: schedulerResult.hhError,
+        scheduledBatchSources: schedulerResult.scheduledBatchSources,
+        scheduledWorkflowSources: schedulerResult.scheduledWorkflowSources,
+        workflowErrors: schedulerResult.workflowErrors,
+        workflowStats: schedulerResult.workflowStats,
       },
-      'Scheduler partially configured: HH scheduling failed',
+      'Scheduler partially configured: workflow scheduling failed',
     );
   }
 

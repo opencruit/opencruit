@@ -75,3 +75,25 @@ export const sourceCursors = pgTable(
   },
   (t) => [uniqueIndex('uq_source_cursors_pk').on(t.source, t.segmentKey)],
 );
+
+export const sourceHealth = pgTable(
+  'source_health',
+  {
+    sourceId: varchar('source_id', { length: 100 }).notNull(),
+    stage: varchar({ length: 50 }).notNull(),
+    status: varchar({ length: 20 }).default('healthy').notNull(),
+    lastRunAt: timestamp('last_run_at'),
+    lastSuccessAt: timestamp('last_success_at'),
+    lastErrorAt: timestamp('last_error_at'),
+    consecutiveFailures: integer('consecutive_failures').default(0).notNull(),
+    lastDurationMs: integer('last_duration_ms'),
+    lastError: text('last_error'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex('uq_source_health_pk').on(t.sourceId, t.stage),
+    index('idx_source_health_status').on(t.status),
+    index('idx_source_health_updated_at').on(t.updatedAt),
+  ],
+);

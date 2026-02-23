@@ -24,7 +24,20 @@ Common fields:
 - `traceId`
 - `waitMs` (start event), `durationMs` (completed/failed)
 
-Queue-specific fields are included in the same record (`sourceId`, `parserId`, `vacancyId`, etc.).
+Queue-specific fields are included in the same record (`sourceId`, `vacancyId`, etc.).
+
+## Persistent Health State
+
+Worker also writes durable health rows to PostgreSQL table `source_health` keyed by `(source_id, stage)`:
+
+- `status` (`healthy` or `failing`)
+- `last_run_at`, `last_success_at`, `last_error_at`
+- `consecutive_failures`
+- `last_duration_ms`
+- `last_error`
+- `created_at`, `updated_at`
+
+This allows tracking source health even after process restarts or log rotation.
 
 ## Local Debug Commands
 
@@ -56,7 +69,7 @@ pnpm worker | jq 'select(.queue=="hh.hydrate" and .event=="job_failed")'
 
 No fresh jobs from a source:
 
-1. Filter by `queue=="source.ingest"` and `parserId`.
+1. Filter by `queue=="source.ingest"` and `sourceId`.
 2. Check latest `job_completed` and `errorsCount`.
 3. If failures exist, inspect `job_failed.error`.
 

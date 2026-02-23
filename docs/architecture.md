@@ -43,6 +43,8 @@ High-level architecture snapshot. For implementation details and status, see `do
 - `hh.index` / `hh.hydrate` / `hh.refresh`: HH-specific multi-phase workflow.
 - `source.gc`: generic retention job for archive/delete by source policy.
 - Structured JSON logging via `pino`, with `traceId` propagation (`withLogger` / `withTrace`).
+- Durable per-source runtime health state in PostgreSQL `source_health`.
+- Worker source catalog (`defineSource`) is the orchestration entrypoint for batch and workflow sources.
 
 ### Parsers
 
@@ -63,7 +65,7 @@ raw job -> validate -> normalize -> fingerprint -> dedup -> store
 
 ### Data Layer
 
-- PostgreSQL: primary storage (`jobs`, `source_cursors`).
+- PostgreSQL: primary storage (`jobs`, `source_cursors`, `source_health`).
 - Redis: BullMQ queues and scheduling backend.
 
 ## Infrastructure

@@ -4,7 +4,7 @@ import type { Job } from 'bullmq';
 import type { Logger } from 'pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { handleBatchIngestJob } from '../src/jobs/batch-ingest.js';
-import { getParser } from '../src/registry.js';
+import { getSourceById } from '../src/sources/catalog.js';
 import type { SourceIngestJobData } from '../src/queues.js';
 
 vi.mock('@opencruit/ingestion', async () => {
@@ -15,12 +15,12 @@ vi.mock('@opencruit/ingestion', async () => {
   };
 });
 
-vi.mock('../src/registry.js', () => ({
-  getParser: vi.fn(),
+vi.mock('../src/sources/catalog.js', () => ({
+  getSourceById: vi.fn(),
 }));
 
 const ingestBatchMock = vi.mocked(ingestBatch);
-const getParserMock = vi.mocked(getParser);
+const getSourceByIdMock = vi.mocked(getSourceById);
 
 function createLoggerMock(): Logger {
   const child = vi.fn();
@@ -55,14 +55,23 @@ describe('handleBatchIngestJob', () => {
       ],
     });
 
-    getParserMock.mockReturnValue({
-      manifest: {
-        id: 'remoteok',
-        name: 'RemoteOK',
-        version: '0.1.0',
-        schedule: '0 */4 * * *',
+    getSourceByIdMock.mockReturnValue({
+      id: 'remoteok',
+      kind: 'batch',
+      pool: 'light',
+      runtime: {
+        attempts: 3,
+        backoffMs: 5000,
       },
-      parse,
+      parser: {
+        manifest: {
+          id: 'remoteok',
+          name: 'RemoteOK',
+          version: '0.1.0',
+          schedule: '0 */4 * * *',
+        },
+        parse,
+      },
     });
 
     ingestBatchMock.mockResolvedValue({
@@ -82,12 +91,12 @@ describe('handleBatchIngestJob', () => {
       durationMs: 10,
     });
 
-    const job = { data: { parserId: 'remoteok' } } as Job<SourceIngestJobData>;
+    const job = { data: { sourceId: 'remoteok' } } as Job<SourceIngestJobData>;
     const db = {} as Database;
 
     const result = await handleBatchIngestJob(job, { db, logger: createLoggerMock() });
 
-    expect(getParserMock).toHaveBeenCalledWith('remoteok');
+    expect(getSourceByIdMock).toHaveBeenCalledWith('remoteok');
     expect(parse).toHaveBeenCalledTimes(1);
     expect(ingestBatchMock).toHaveBeenCalledWith(
       expect.arrayContaining([
@@ -103,39 +112,48 @@ describe('handleBatchIngestJob', () => {
     expect(result.stats.upserted).toBe(1);
   });
 
-  it('fails when parser id is unknown', async () => {
-    getParserMock.mockImplementation(() => {
-      throw new Error('Unknown parser id: unknown');
+  it('fails when source id is unknown', async () => {
+    getSourceByIdMock.mockImplementation(() => {
+      throw new Error('Unknown source id: unknown');
     });
 
-    const job = { data: { parserId: 'unknown' } } as Job<SourceIngestJobData>;
+    const job = { data: { sourceId: 'unknown' } } as Job<SourceIngestJobData>;
 
     await expect(handleBatchIngestJob(job, { db: {} as Database, logger: createLoggerMock() })).rejects.toThrow(
-      'Unknown parser id: unknown',
+      'Unknown source id: unknown',
     );
     expect(ingestBatchMock).not.toHaveBeenCalled();
   });
 
   it('fails when ingest pipeline returns errors', async () => {
-    getParserMock.mockReturnValue({
-      manifest: {
-        id: 'remoteok',
-        name: 'RemoteOK',
-        version: '0.1.0',
-        schedule: '0 */4 * * *',
+    getSourceByIdMock.mockReturnValue({
+      id: 'remoteok',
+      kind: 'batch',
+      pool: 'light',
+      runtime: {
+        attempts: 3,
+        backoffMs: 5000,
       },
-      parse: vi.fn().mockResolvedValue({
-        jobs: [
-          {
-            sourceId: 'remoteok',
-            externalId: 'remoteok:1',
-            url: 'https://example.com/job/1',
-            title: 'Engineer',
-            company: 'Acme',
-            description: 'Hello',
-          },
-        ],
-      }),
+      parser: {
+        manifest: {
+          id: 'remoteok',
+          name: 'RemoteOK',
+          version: '0.1.0',
+          schedule: '0 */4 * * *',
+        },
+        parse: vi.fn().mockResolvedValue({
+          jobs: [
+            {
+              sourceId: 'remoteok',
+              externalId: 'remoteok:1',
+              url: 'https://example.com/job/1',
+              title: 'Engineer',
+              company: 'Acme',
+              description: 'Hello',
+            },
+          ],
+        }),
+      },
     });
 
     ingestBatchMock.mockResolvedValue({
@@ -155,9 +173,29 @@ describe('handleBatchIngestJob', () => {
       durationMs: 12,
     });
 
-    const job = { data: { parserId: 'remoteok' } } as Job<SourceIngestJobData>;
+    const job = { data: { sourceId: 'remoteok' } } as Job<SourceIngestJobData>;
     await expect(handleBatchIngestJob(job, { db: {} as Database, logger: createLoggerMock() })).rejects.toThrow(
       '[source.ingest:remoteok] db failed',
     );
+  });
+
+  it('fails when source is not a batch source', async () => {
+    getSourceByIdMock.mockReturnValue({
+      id: 'hh',
+      kind: 'workflow',
+      pool: 'light',
+      runtime: {
+        attempts: 4,
+        backoffMs: 5000,
+      },
+      setupScheduler: vi.fn(),
+    });
+
+    const job = { data: { sourceId: 'hh' } } as Job<SourceIngestJobData>;
+
+    await expect(handleBatchIngestJob(job, { db: {} as Database, logger: createLoggerMock() })).rejects.toThrow(
+      'Source hh is not a batch source',
+    );
+    expect(ingestBatchMock).not.toHaveBeenCalled();
   });
 });

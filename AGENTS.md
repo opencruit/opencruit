@@ -107,11 +107,13 @@ Not microservices. Two app processes + two infra. One codebase.
 ### Parser System
 
 - Parsers are npm packages imported by worker — not HTTP services, not separate containers
-- API/HTML parsers implement `Parser` from `@opencruit/parser-sdk` (RemoteOK, WWR)
-- Simple parsers are orchestrated by worker job `source.ingest` (schedule override via worker env, fallback to `manifest.schedule`)
-- HH integration uses 3-phase worker jobs (`hh.index`, `hh.hydrate`, `hh.refresh`) via `@opencruit/parser-hh` helpers
+- Batch parsers implement `Parser` from `@opencruit/parser-sdk` via `defineParser` (RemoteOK, WWR)
+- Sources are registered in worker source catalog via `defineSource` (batch + workflow)
+- Batch sources are orchestrated by worker job `source.ingest` (schedule override via `SOURCE_SCHEDULE_<SOURCE_ID>`)
+- HH integration uses workflow source contract and 3-phase jobs (`hh.index`, `hh.hydrate`, `hh.refresh`) via `@opencruit/parser-hh` helpers
 - Lifecycle cleanup is handled by generic worker job `source.gc` with per-source retention policy
 - Worker emits structured JSON logs (pino) with `traceId` propagation via `withLogger`/`withTrace`
+- Worker persists per-source runtime health in PostgreSQL `source_health` (`last_success_at`, `last_error_at`, `consecutive_failures`)
 - Light parsers (API/HTML) in one worker pool, Playwright parsers in heavy pool (when needed)
 - Ingestion pipeline: normalize → deduplicate → enrich → store → emit event
 - Deduplication: fingerprint (sha256 of company+title+location) + fuzzy matching (pg_trgm)

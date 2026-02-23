@@ -1,5 +1,5 @@
 import { XMLParser } from 'fast-xml-parser';
-import type { Parser, ParseResult, RawJob } from '@opencruit/parser-sdk';
+import { defineParser, type ParseResult, type RawJob } from '@opencruit/parser-sdk';
 
 const RSS_URL = 'https://weworkremotely.com/remote-jobs.rss';
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -140,7 +140,7 @@ export async function parse(): Promise<ParseResult> {
   return { jobs };
 }
 
-export const weWorkRemotelyParser: Parser = {
+export const weWorkRemotelyParser = defineParser({
   manifest: {
     id: 'weworkremotely',
     name: 'We Work Remotely',
@@ -148,4 +148,4 @@ export const weWorkRemotelyParser: Parser = {
     schedule: '0 */4 * * *',
   },
   parse,
-};
+});

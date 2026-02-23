@@ -1,12 +1,12 @@
 import type { HhClient } from '@opencruit/parser-hh';
-import { getAllParsers } from './registry.js';
+import { getBatchSources, getWorkflowSources } from './sources/catalog.js';
+import type { BatchSourceDefinition } from './sources/types.js';
 import type { Queues } from './queues.js';
 
 const INDEX_CRON = '15 */12 * * *';
 const REFRESH_CRON = '0 */12 * * *';
 const GC_ARCHIVE_CRON = '0 3 */3 * *';
 const GC_DELETE_CRON = '0 4 * * 1';
-const SOURCE_INGEST_BACKOFF_MS = 5000;
 
 export interface SchedulerOptions {
   indexCron?: string;
@@ -15,40 +15,48 @@ export interface SchedulerOptions {
   gcDeleteCron?: string;
   bootstrapIndexNow?: boolean;
   refreshBatchSize?: number;
-  parserSchedules?: Record<string, string>;
+  sourceSchedules?: Record<string, string>;
 }
 
 export interface SchedulerResult {
-  roleCount: number;
-  batchParserCount: number;
-  hhSchedulingSucceeded: boolean;
-  hhError?: string;
+  scheduledBatchSources: number;
+  scheduledWorkflowSources: number;
+  workflowErrors: Array<{
+    sourceId: string;
+    error: string;
+  }>;
+  workflowStats: Record<string, Record<string, number | string | boolean>>;
 }
 
-function bootstrapKey(date: Date): string {
-  return date.toISOString().slice(0, 10).replaceAll('-', '');
+function sourceScheduleEnvKey(sourceId: string): string {
+  return `SOURCE_SCHEDULE_${sourceId.replaceAll(/[^a-z0-9]/gi, '_').toUpperCase()}`;
 }
 
-function parserScheduleEnvKey(parserId: string): string {
-  return `PARSER_SCHEDULE_${parserId.replaceAll(/[^a-z0-9]/gi, '_').toUpperCase()}`;
-}
-
-function resolveParserSchedule(
-  parserId: string,
-  manifestSchedule: string,
-  parserSchedules: Record<string, string> | undefined,
+function resolveSourceSchedule(
+  source: BatchSourceDefinition,
+  sourceSchedules: Record<string, string> | undefined,
 ): string {
-  const configOverride = parserSchedules?.[parserId]?.trim();
+  const configOverride = sourceSchedules?.[source.id]?.trim();
   if (configOverride) {
     return configOverride;
   }
 
-  const envOverride = process.env[parserScheduleEnvKey(parserId)]?.trim();
+  const envOverride = process.env[sourceScheduleEnvKey(source.id)]?.trim();
   if (envOverride) {
     return envOverride;
   }
 
-  return manifestSchedule;
+  const declared = source.schedule?.trim();
+  if (declared) {
+    return declared;
+  }
+
+  const manifestSchedule = source.parser.manifest.schedule.trim();
+  if (manifestSchedule) {
+    return manifestSchedule;
+  }
+
+  throw new Error(`Source ${source.id} has no schedule configured`);
 }
 
 async function scheduleSourceGcJobs(queues: Queues, gcArchiveCron: string, gcDeleteCron: string): Promise<void> {
@@ -93,91 +101,9 @@ async function scheduleSourceGcJobs(queues: Queues, gcArchiveCron: string, gcDel
   );
 }
 
-async function scheduleHhJobs(
-  queues: Queues,
-  client: HhClient,
-  options: {
-    indexCron: string;
-    refreshCron: string;
-    refreshBatchSize: number;
-    bootstrapIndexNow: boolean;
-  },
-): Promise<number> {
-  const roleIds = await client.getItRoleIds();
-  if (roleIds.length === 0) {
-    throw new Error('HH API returned no IT professional roles');
-  }
-
-  for (const roleId of roleIds) {
-    await queues.indexQueue.add(
-      'hh-index',
-      {
-        professionalRole: roleId,
-      },
-      {
-        jobId: `hh-index-role-${roleId}`,
-        repeat: {
-          pattern: options.indexCron,
-        },
-        attempts: 4,
-        backoff: {
-          type: 'exponential',
-          delay: 5000,
-        },
-        removeOnComplete: true,
-        removeOnFail: 1000,
-      },
-    );
-  }
-
-  if (options.bootstrapIndexNow) {
-    const key = bootstrapKey(new Date());
-    for (const roleId of roleIds) {
-      await queues.indexQueue.add(
-        'hh-index-bootstrap',
-        {
-          professionalRole: roleId,
-        },
-        {
-          jobId: `hh-index-bootstrap-${roleId}-${key}`,
-          attempts: 4,
-          backoff: {
-            type: 'exponential',
-            delay: 5000,
-          },
-          removeOnComplete: true,
-          removeOnFail: 1000,
-        },
-      );
-    }
-  }
-
-  await queues.refreshQueue.add(
-    'hh-refresh',
-    {
-      batchSize: options.refreshBatchSize,
-    },
-    {
-      jobId: 'hh-refresh',
-      repeat: {
-        pattern: options.refreshCron,
-      },
-      attempts: 4,
-      backoff: {
-        type: 'exponential',
-        delay: 5000,
-      },
-      removeOnComplete: true,
-      removeOnFail: 1000,
-    },
-  );
-
-  return roleIds.length;
-}
-
 export async function scheduleAllSources(
   queues: Queues,
-  client: HhClient,
+  hhClient: HhClient,
   options: SchedulerOptions = {},
 ): Promise<SchedulerResult> {
   const indexCron = options.indexCron ?? INDEX_CRON;
@@ -185,26 +111,26 @@ export async function scheduleAllSources(
   const gcArchiveCron = options.gcArchiveCron ?? GC_ARCHIVE_CRON;
   const gcDeleteCron = options.gcDeleteCron ?? GC_DELETE_CRON;
   const refreshBatchSize = options.refreshBatchSize ?? 500;
-  const parsers = getAllParsers();
+  const batchSources = getBatchSources();
+  const workflowSources = getWorkflowSources();
 
-  for (const parser of parsers) {
-    const parserId = parser.manifest.id;
-    const schedule = resolveParserSchedule(parserId, parser.manifest.schedule, options.parserSchedules);
+  for (const source of batchSources) {
+    const schedule = resolveSourceSchedule(source, options.sourceSchedules);
 
     await queues.sourceIngestQueue.add(
       'source-ingest',
       {
-        parserId,
+        sourceId: source.id,
       },
       {
-        jobId: `source-ingest-${parserId}`,
+        jobId: `source-ingest-${source.id}`,
         repeat: {
           pattern: schedule,
         },
-        attempts: 3,
+        attempts: source.runtime.attempts,
         backoff: {
           type: 'exponential',
-          delay: SOURCE_INGEST_BACKOFF_MS,
+          delay: source.runtime.backoffMs,
         },
         removeOnComplete: true,
         removeOnFail: 1000,
@@ -214,26 +140,40 @@ export async function scheduleAllSources(
 
   await scheduleSourceGcJobs(queues, gcArchiveCron, gcDeleteCron);
 
-  let roleCount = 0;
-  let hhSchedulingSucceeded = true;
-  let hhError: string | undefined;
+  let scheduledWorkflowSources = 0;
+  const workflowErrors: Array<{ sourceId: string; error: string }> = [];
+  const workflowStats: Record<string, Record<string, number | string | boolean>> = {};
 
-  try {
-    roleCount = await scheduleHhJobs(queues, client, {
-      indexCron,
-      refreshCron,
-      refreshBatchSize,
-      bootstrapIndexNow: options.bootstrapIndexNow ?? true,
-    });
-  } catch (error) {
-    hhSchedulingSucceeded = false;
-    hhError = error instanceof Error ? error.message : String(error);
+  for (const source of workflowSources) {
+    try {
+      const result = await source.setupScheduler({
+        queues,
+        services: {
+          hhClient,
+        },
+        options: {
+          indexCron,
+          refreshCron,
+          refreshBatchSize,
+          bootstrapIndexNow: options.bootstrapIndexNow ?? true,
+        },
+      });
+      scheduledWorkflowSources += 1;
+      if (result.stats) {
+        workflowStats[source.id] = result.stats;
+      }
+    } catch (error) {
+      workflowErrors.push({
+        sourceId: source.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   return {
-    roleCount,
-    batchParserCount: parsers.length,
-    hhSchedulingSucceeded,
-    hhError,
+    scheduledBatchSources: batchSources.length,
+    scheduledWorkflowSources,
+    workflowErrors,
+    workflowStats,
   };
 }
