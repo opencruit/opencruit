@@ -1,0 +1,9 @@
+{
+  "extends": "@opencruit/tsconfig/node.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "drizzle"]
+}

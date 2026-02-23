@@ -12,8 +12,9 @@
     "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
-    "@opencruit/parser-remoteok": "workspace:*",
-    "@opencruit/parser-sdk": "workspace:*"
+    "@opencruit/db": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "mode-watcher": "catalog:"
   },
   "devDependencies": {
     "@lucide/svelte": "catalog:",

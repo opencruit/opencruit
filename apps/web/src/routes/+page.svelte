@@ -41,12 +41,6 @@
   <title>Jobs | OpenCruit</title>
 </svelte:head>
 
-{#if data.error}
-  <div class="mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
-    {data.error}
-  </div>
-{/if}
-
 <div class="mb-8 flex items-center gap-3">
   <Input type="text" bind:value={search} placeholder="Search jobs, companies, or tags..." class="flex-1" />
   {#if search}
@@ -119,7 +113,7 @@
   {/each}
 </div>
 
-{#if filteredJobs.length === 0 && !data.error}
+{#if filteredJobs.length === 0}
   <div class="py-16 text-center">
     {#if search}
       <p class="text-muted-foreground">No jobs match "<span class="text-foreground">{search}</span>"</p>

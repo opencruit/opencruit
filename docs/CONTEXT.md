@@ -47,16 +47,15 @@
 
 Build one complete path from parser to browser, then widen each layer.
 
-### Step 1 — SvelteKit app (direct parser call)
+### Step 1 — SvelteKit app (direct parser call) — **done**
 
-SvelteKit app calls `parse()` from RemoteOK directly in server load. No database, no Redis.
-Goal: working product in browser, real data, UI components (job card, list, filters).
+SvelteKit app with Svelte 5, Tailwind CSS 4, shadcn-svelte components, dark/light theme (mode-watcher).
+Job listing with search, detail pages, responsive layout.
 
-### Step 2 — PostgreSQL + Drizzle
+### Step 2 — PostgreSQL + Drizzle — **done**
 
-Add `jobs` table (mirrors `RawJob` + fingerprint, timestamps, source metadata).
-Cron script runs parser → writes to DB. SvelteKit reads from DB instead of API.
-Enables: fast rendering, tsvector search, dedup foundation.
+`packages/db/` with Drizzle schema (`jobs` table), `docker-compose.yml` for PostgreSQL.
+`pnpm ingest` runs parser → writes to DB. SvelteKit reads from DB.
 
 ### Step 3 — Ingestion pipeline
 
@@ -72,7 +71,6 @@ Only when 2+ parsers exist and scheduling is needed. Until then — cron is enou
 - Redis Streams / events — no consumers yet
 - NDJSON streaming in `/parse` — RemoteOK returns <200 jobs
 - Parser as HTTP service (`/manifest`, `/health`, `/parse`) — parsers stay as functions until orchestrator exists
-- Docker — dev mode first, docker compose before launch
 - Second/third parsers — after pipeline works end-to-end
 
 ## Parser SDK
@@ -104,25 +102,29 @@ Only when 2+ parsers exist and scheduling is needed. Until then — cron is enou
 | ESLint            | 10.0.1        |
 | typescript-eslint | 8.56.0        |
 | Prettier          | 3.8.1         |
-| Svelte            | 5.x           |
-| SvelteKit         | 2.x           |
-| Tailwind CSS      | 4.x           |
-| Drizzle ORM       | 0.x           |
+| Svelte            | 5.53.1        |
+| SvelteKit         | 2.53.0        |
+| Tailwind CSS      | 4.2.0         |
+| Drizzle ORM       | 0.45.1        |
 | Vitest            | 4.0.18        |
 | Zod               | 4.3.6         |
+| shadcn-svelte     | 1.1.1 (CLI)   |
+| mode-watcher      | 1.1.0         |
 | License           | AGPL-3.0-only |
 
 ## Monorepo Structure (current)
 
 ```
+apps/
+  web/              # @opencruit/web — SvelteKit frontend (Svelte 5, Tailwind 4, shadcn-svelte)
 packages/
   tsconfig/         # shared TS configs
   eslint-config/    # shared ESLint 10 configs (base, svelte)
   types/            # @opencruit/types
   parser-sdk/       # @opencruit/parser-sdk — types, Zod schema, utilities
+  db/               # @opencruit/db — Drizzle schema, client, migrations
   parsers/
     remoteok/       # @opencruit/parser-remoteok — RemoteOK JSON API parser
-apps/               # deployable services (when created)
 ```
 
 Internal packages have no build step — exports point to `./src/index.ts`.

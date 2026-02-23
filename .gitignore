@@ -31,5 +31,8 @@ pnpm-debug.log*
 # Test coverage
 coverage/
 
+# Personal notes
+.claude/ideas.md
+
 # Misc
 *.tsbuildinfo

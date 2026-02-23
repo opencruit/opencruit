@@ -13,7 +13,7 @@ See `VISION.md` for full product direction and business model.
 | Monorepo        | Turborepo               |
 | Runtime         | Node.js 24 LTS          |
 | Language        | TypeScript 5.9 (strict) |
-| Web UI          | SvelteKit (planned)     |
+| Web UI          | SvelteKit + Svelte 5    |
 | Database        | PostgreSQL              |
 | ORM             | Drizzle                 |
 | Linter          | ESLint 10 (flat config) |
@@ -23,12 +23,14 @@ See `VISION.md` for full product direction and business model.
 ## Monorepo Structure
 
 ```
-apps/                         # Deployable services (when created)
+apps/
+  web/                        # @opencruit/web — SvelteKit frontend (Svelte 5, Tailwind 4, shadcn-svelte)
 packages/
   tsconfig/                   # Shared TS configs (base, node, svelte)
   eslint-config/              # Shared ESLint 10 flat configs (base, svelte)
   types/                      # @opencruit/types — shared type definitions
   parser-sdk/                 # @opencruit/parser-sdk — parser contract, types, Zod schema
+  db/                         # @opencruit/db — Drizzle schema, client, migrations
   parsers/
     remoteok/                 # @opencruit/parser-remoteok — RemoteOK JSON API parser
 ```
@@ -44,6 +46,7 @@ pnpm format                   # Prettier write
 pnpm format:check             # Prettier check
 pnpm build                    # Build all packages
 pnpm dev                      # Dev mode
+pnpm ingest                   # Run parser → write to DB
 ```
 
 ## Conventions

@@ -1,8 +1,14 @@
 <script lang="ts">
   import '../app.css';
+  import { ModeWatcher, toggleMode, mode } from 'mode-watcher';
+  import Sun from '@lucide/svelte/icons/sun';
+  import Moon from '@lucide/svelte/icons/moon';
+  import { Button } from '$lib/components/ui/button/index.js';
 
   let { children } = $props();
 </script>
+
+<ModeWatcher defaultMode="dark" />
 
 <div class="min-h-screen bg-background text-foreground">
   <header class="sticky top-0 z-10 border-b border-border/50 bg-background/80 backdrop-blur-lg">
@@ -10,7 +16,13 @@
       <a href="/" class="text-lg font-semibold tracking-tight">
         <span class="text-primary">Open</span><span class="text-muted-foreground">Cruit</span>
       </a>
-      <p class="text-xs text-muted-foreground">Open-source job aggregator</p>
+      <Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Toggle theme">
+        {#if mode.current === 'dark'}
+          <Sun class="size-4" />
+        {:else}
+          <Moon class="size-4" />
+        {/if}
+      </Button>
     </div>
   </header>
 

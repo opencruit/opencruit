@@ -12,13 +12,15 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "ingest": "tsx --env-file=.env scripts/ingest.ts"
   },
   "devDependencies": {
     "@opencruit/eslint-config": "workspace:*",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "prettier-plugin-svelte": "catalog:",
+    "tsx": "catalog:",
     "turbo": "catalog:",
     "typescript": "catalog:"
   }
