@@ -25,8 +25,14 @@ export async function handleBatchIngestJob(
     }),
   );
 
-  return ingestBatch(parsed.jobs, deps.db, {
+  const result = await ingestBatch(parsed.jobs, deps.db, {
     sourceId: parser.manifest.id,
     logger: ingestionLogger,
   });
+
+  if (result.errors.length > 0) {
+    throw new Error(`[source.ingest:${parser.manifest.id}] ${result.errors.join(' | ')}`);
+  }
+
+  return result;
 }

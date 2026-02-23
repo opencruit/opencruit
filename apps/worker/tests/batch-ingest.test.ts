@@ -115,4 +115,49 @@ describe('handleBatchIngestJob', () => {
     );
     expect(ingestBatchMock).not.toHaveBeenCalled();
   });
+
+  it('fails when ingest pipeline returns errors', async () => {
+    getParserMock.mockReturnValue({
+      manifest: {
+        id: 'remoteok',
+        name: 'RemoteOK',
+        version: '0.1.0',
+        schedule: '0 */4 * * *',
+      },
+      parse: vi.fn().mockResolvedValue({
+        jobs: [
+          {
+            sourceId: 'remoteok',
+            externalId: 'remoteok:1',
+            url: 'https://example.com/job/1',
+            title: 'Engineer',
+            company: 'Acme',
+            description: 'Hello',
+          },
+        ],
+      }),
+    });
+
+    ingestBatchMock.mockResolvedValue({
+      sourceId: 'remoteok',
+      stats: {
+        received: 1,
+        validated: 1,
+        validationDropped: 0,
+        normalized: 1,
+        fingerprinted: 1,
+        dedupPlannedInserts: 0,
+        dedupPlannedUpdates: 0,
+        dedupSkipped: 0,
+        upserted: 0,
+      },
+      errors: ['db failed'],
+      durationMs: 12,
+    });
+
+    const job = { data: { parserId: 'remoteok' } } as Job<SourceIngestJobData>;
+    await expect(handleBatchIngestJob(job, { db: {} as Database, logger: createLoggerMock() })).rejects.toThrow(
+      '[source.ingest:remoteok] db failed',
+    );
+  });
 });

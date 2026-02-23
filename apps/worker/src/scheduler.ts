@@ -21,6 +21,8 @@ export interface SchedulerOptions {
 export interface SchedulerResult {
   roleCount: number;
   batchParserCount: number;
+  hhSchedulingSucceeded: boolean;
+  hhError?: string;
 }
 
 function bootstrapKey(date: Date): string {
@@ -36,115 +38,20 @@ function resolveParserSchedule(
   manifestSchedule: string,
   parserSchedules: Record<string, string> | undefined,
 ): string {
-  return parserSchedules?.[parserId] ?? process.env[parserScheduleEnvKey(parserId)] ?? manifestSchedule;
+  const configOverride = parserSchedules?.[parserId]?.trim();
+  if (configOverride) {
+    return configOverride;
+  }
+
+  const envOverride = process.env[parserScheduleEnvKey(parserId)]?.trim();
+  if (envOverride) {
+    return envOverride;
+  }
+
+  return manifestSchedule;
 }
 
-export async function scheduleAllSources(
-  queues: Queues,
-  client: HhClient,
-  options: SchedulerOptions = {},
-): Promise<SchedulerResult> {
-  const indexCron = options.indexCron ?? INDEX_CRON;
-  const refreshCron = options.refreshCron ?? REFRESH_CRON;
-  const gcArchiveCron = options.gcArchiveCron ?? GC_ARCHIVE_CRON;
-  const gcDeleteCron = options.gcDeleteCron ?? GC_DELETE_CRON;
-  const refreshBatchSize = options.refreshBatchSize ?? 500;
-  const parsers = getAllParsers();
-
-  for (const parser of parsers) {
-    const parserId = parser.manifest.id;
-    const schedule = resolveParserSchedule(parserId, parser.manifest.schedule, options.parserSchedules);
-
-    await queues.sourceIngestQueue.add(
-      'source-ingest',
-      {
-        parserId,
-      },
-      {
-        jobId: `source-ingest-${parserId}`,
-        repeat: {
-          pattern: schedule,
-        },
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: SOURCE_INGEST_BACKOFF_MS,
-        },
-        removeOnComplete: true,
-        removeOnFail: 1000,
-      },
-    );
-  }
-
-  const roleIds = await client.getItRoleIds();
-  if (roleIds.length === 0) {
-    throw new Error('HH API returned no IT professional roles');
-  }
-
-  for (const roleId of roleIds) {
-    await queues.indexQueue.add(
-      'hh-index',
-      {
-        professionalRole: roleId,
-      },
-      {
-        jobId: `hh-index-role-${roleId}`,
-        repeat: {
-          pattern: indexCron,
-        },
-        attempts: 4,
-        backoff: {
-          type: 'exponential',
-          delay: 5000,
-        },
-        removeOnComplete: true,
-        removeOnFail: 1000,
-      },
-    );
-  }
-
-  if (options.bootstrapIndexNow ?? true) {
-    const key = bootstrapKey(new Date());
-    for (const roleId of roleIds) {
-      await queues.indexQueue.add(
-        'hh-index-bootstrap',
-        {
-          professionalRole: roleId,
-        },
-        {
-          jobId: `hh-index-bootstrap-${roleId}-${key}`,
-          attempts: 4,
-          backoff: {
-            type: 'exponential',
-            delay: 5000,
-          },
-          removeOnComplete: true,
-          removeOnFail: 1000,
-        },
-      );
-    }
-  }
-
-  await queues.refreshQueue.add(
-    'hh-refresh',
-    {
-      batchSize: refreshBatchSize,
-    },
-    {
-      jobId: 'hh-refresh',
-      repeat: {
-        pattern: refreshCron,
-      },
-      attempts: 4,
-      backoff: {
-        type: 'exponential',
-        delay: 5000,
-      },
-      removeOnComplete: true,
-      removeOnFail: 1000,
-    },
-  );
-
+async function scheduleSourceGcJobs(queues: Queues, gcArchiveCron: string, gcDeleteCron: string): Promise<void> {
   await queues.sourceGcQueue.add(
     'source-gc-archive',
     {
@@ -184,9 +91,149 @@ export async function scheduleAllSources(
       removeOnFail: 1000,
     },
   );
+}
+
+async function scheduleHhJobs(
+  queues: Queues,
+  client: HhClient,
+  options: {
+    indexCron: string;
+    refreshCron: string;
+    refreshBatchSize: number;
+    bootstrapIndexNow: boolean;
+  },
+): Promise<number> {
+  const roleIds = await client.getItRoleIds();
+  if (roleIds.length === 0) {
+    throw new Error('HH API returned no IT professional roles');
+  }
+
+  for (const roleId of roleIds) {
+    await queues.indexQueue.add(
+      'hh-index',
+      {
+        professionalRole: roleId,
+      },
+      {
+        jobId: `hh-index-role-${roleId}`,
+        repeat: {
+          pattern: options.indexCron,
+        },
+        attempts: 4,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+        removeOnComplete: true,
+        removeOnFail: 1000,
+      },
+    );
+  }
+
+  if (options.bootstrapIndexNow) {
+    const key = bootstrapKey(new Date());
+    for (const roleId of roleIds) {
+      await queues.indexQueue.add(
+        'hh-index-bootstrap',
+        {
+          professionalRole: roleId,
+        },
+        {
+          jobId: `hh-index-bootstrap-${roleId}-${key}`,
+          attempts: 4,
+          backoff: {
+            type: 'exponential',
+            delay: 5000,
+          },
+          removeOnComplete: true,
+          removeOnFail: 1000,
+        },
+      );
+    }
+  }
+
+  await queues.refreshQueue.add(
+    'hh-refresh',
+    {
+      batchSize: options.refreshBatchSize,
+    },
+    {
+      jobId: 'hh-refresh',
+      repeat: {
+        pattern: options.refreshCron,
+      },
+      attempts: 4,
+      backoff: {
+        type: 'exponential',
+        delay: 5000,
+      },
+      removeOnComplete: true,
+      removeOnFail: 1000,
+    },
+  );
+
+  return roleIds.length;
+}
+
+export async function scheduleAllSources(
+  queues: Queues,
+  client: HhClient,
+  options: SchedulerOptions = {},
+): Promise<SchedulerResult> {
+  const indexCron = options.indexCron ?? INDEX_CRON;
+  const refreshCron = options.refreshCron ?? REFRESH_CRON;
+  const gcArchiveCron = options.gcArchiveCron ?? GC_ARCHIVE_CRON;
+  const gcDeleteCron = options.gcDeleteCron ?? GC_DELETE_CRON;
+  const refreshBatchSize = options.refreshBatchSize ?? 500;
+  const parsers = getAllParsers();
+
+  for (const parser of parsers) {
+    const parserId = parser.manifest.id;
+    const schedule = resolveParserSchedule(parserId, parser.manifest.schedule, options.parserSchedules);
+
+    await queues.sourceIngestQueue.add(
+      'source-ingest',
+      {
+        parserId,
+      },
+      {
+        jobId: `source-ingest-${parserId}`,
+        repeat: {
+          pattern: schedule,
+        },
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: SOURCE_INGEST_BACKOFF_MS,
+        },
+        removeOnComplete: true,
+        removeOnFail: 1000,
+      },
+    );
+  }
+
+  await scheduleSourceGcJobs(queues, gcArchiveCron, gcDeleteCron);
+
+  let roleCount = 0;
+  let hhSchedulingSucceeded = true;
+  let hhError: string | undefined;
+
+  try {
+    roleCount = await scheduleHhJobs(queues, client, {
+      indexCron,
+      refreshCron,
+      refreshBatchSize,
+      bootstrapIndexNow: options.bootstrapIndexNow ?? true,
+    });
+  } catch (error) {
+    hhSchedulingSucceeded = false;
+    hhError = error instanceof Error ? error.message : String(error);
+  }
 
   return {
-    roleCount: roleIds.length,
+    roleCount,
     batchParserCount: parsers.length,
+    hhSchedulingSucceeded,
+    hhError,
   };
 }

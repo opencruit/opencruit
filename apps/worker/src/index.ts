@@ -232,14 +232,26 @@ async function run(): Promise<void> {
   }
 
   const schedulerResult = await scheduleAllSources(queues, hhClient);
-  logger.info(
-    {
-      event: 'scheduler_configured',
-      batchParserCount: schedulerResult.batchParserCount,
-      roleCount: schedulerResult.roleCount,
-    },
-    'Scheduler configured',
-  );
+  if (schedulerResult.hhSchedulingSucceeded) {
+    logger.info(
+      {
+        event: 'scheduler_configured',
+        batchParserCount: schedulerResult.batchParserCount,
+        roleCount: schedulerResult.roleCount,
+      },
+      'Scheduler configured',
+    );
+  } else {
+    logger.warn(
+      {
+        event: 'scheduler_partially_configured',
+        batchParserCount: schedulerResult.batchParserCount,
+        roleCount: schedulerResult.roleCount,
+        hhError: schedulerResult.hhError,
+      },
+      'Scheduler partially configured: HH scheduling failed',
+    );
+  }
 
   const closeDb = async (): Promise<void> => {
     const client = (db as unknown as { $client?: { end: () => Promise<void> } }).$client;
