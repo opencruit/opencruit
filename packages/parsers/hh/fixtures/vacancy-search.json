@@ -1,0 +1,35 @@
+{
+  "items": [
+    {
+      "id": "130668144",
+      "name": "Python-разработчик",
+      "url": "https://api.hh.ru/vacancies/130668144?host=hh.ru",
+      "alternate_url": "https://hh.ru/vacancy/130668144",
+      "published_at": "2026-02-23T12:59:00+0300",
+      "created_at": "2026-02-23T12:59:00+0300",
+      "archived": false,
+      "employer": {
+        "id": "68587",
+        "name": "Алабуга, ОЭЗ ППТ"
+      },
+      "area": {
+        "id": "1",
+        "name": "Москва"
+      },
+      "schedule": {
+        "id": "fullDay",
+        "name": "Полный день"
+      },
+      "professional_roles": [
+        {
+          "id": "96",
+          "name": "Программист, разработчик"
+        }
+      ]
+    }
+  ],
+  "found": 4264,
+  "pages": 666,
+  "page": 0,
+  "per_page": 3
+}

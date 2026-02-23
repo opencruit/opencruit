@@ -1,0 +1,32 @@
+{
+  "name": "@opencruit/worker",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "bin": {
+    "opencruit-worker": "./bin/opencruit-worker"
+  },
+  "scripts": {
+    "dev": "tsx --env-file=../../.env src/index.ts",
+    "worker": "./bin/opencruit-worker",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@opencruit/db": "workspace:*",
+    "@opencruit/ingestion": "workspace:*",
+    "@opencruit/parser-hh": "workspace:*",
+    "bullmq": "catalog:",
+    "drizzle-orm": "catalog:",
+    "ioredis": "catalog:"
+  },
+  "devDependencies": {
+    "@opencruit/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

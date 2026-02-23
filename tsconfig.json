@@ -4,7 +4,11 @@
     { "path": "packages/types" },
     { "path": "packages/parser-sdk" },
     { "path": "packages/db" },
+    { "path": "packages/ingestion" },
+    { "path": "packages/parsers/hh" },
     { "path": "packages/parsers/remoteok" },
+    { "path": "packages/parsers/weworkremotely" },
+    { "path": "apps/worker" },
     { "path": "apps/web" }
   ]
 }

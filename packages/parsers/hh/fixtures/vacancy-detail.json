@@ -1,0 +1,50 @@
+{
+  "id": "130668144",
+  "name": "Python-разработчик",
+  "description": "<p>Разработка backend-сервисов на Django REST Framework.</p>",
+  "archived": false,
+  "published_at": "2026-02-23T12:59:00+0300",
+  "alternate_url": "https://hh.ru/vacancy/130668144",
+  "apply_alternate_url": "https://hh.ru/applicant/vacancy_response?vacancyId=130668144",
+  "employer": {
+    "id": "68587",
+    "name": "Алабуга, ОЭЗ ППТ"
+  },
+  "area": {
+    "id": "1",
+    "name": "Москва"
+  },
+  "address": {
+    "city": "Елабуга",
+    "raw": "Елабуга"
+  },
+  "schedule": {
+    "id": "remote",
+    "name": "Удаленная работа"
+  },
+  "salary": {
+    "from": 127500,
+    "to": null,
+    "currency": "RUR"
+  },
+  "key_skills": [
+    {
+      "name": "Python"
+    },
+    {
+      "name": "Django"
+    }
+  ],
+  "professional_roles": [
+    {
+      "id": "96",
+      "name": "Программист, разработчик"
+    }
+  ],
+  "work_format": [
+    {
+      "id": "REMOTE",
+      "name": "Удалённо"
+    }
+  ]
+}

@@ -13,7 +13,7 @@ export {
 } from './normalize.js';
 export { computeFingerprint, fingerprintJob, fingerprintJobs } from './fingerprint.js';
 export { dedup } from './dedup.js';
-export { store } from './store.js';
+export { store, computeContentHash } from './store.js';
 
 // Types
 export type {

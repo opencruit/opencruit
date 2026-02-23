@@ -37,3 +37,5 @@ catalog:
   dotenv: ^16.5.0
   tsx: ^4.19.4
   fast-xml-parser: ^5.3.7
+  bullmq: ^5.70.1
+  ioredis: ^5.9.3

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+app_dir="$(cd -- "${script_dir}/.." && pwd)"
+env_file="${OPENCRUIT_ENV_FILE:-${app_dir}/../../.env}"
+
+if [[ -f "${env_file}" ]]; then
+  exec pnpm --dir "${app_dir}" exec tsx --env-file="${env_file}" "${app_dir}/src/index.ts" "$@"
+fi
+
+exec pnpm --dir "${app_dir}" exec tsx "${app_dir}/src/index.ts" "$@"

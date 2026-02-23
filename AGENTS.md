@@ -25,6 +25,7 @@ See `VISION.md` for full product direction and business model.
 ```
 apps/
   web/                        # @opencruit/web — SvelteKit frontend (Svelte 5, Tailwind 4, shadcn-svelte)
+  worker/                     # @opencruit/worker — BullMQ worker process (HH index/hydrate/refresh/gc)
 packages/
   tsconfig/                   # Shared TS configs (base, node, svelte)
   eslint-config/              # Shared ESLint 10 flat configs (base, svelte)
@@ -33,6 +34,7 @@ packages/
   db/                         # @opencruit/db — Drizzle schema, client, migrations
   ingestion/                  # @opencruit/ingestion — ingestion pipeline (normalize, validate, dedup, store)
   parsers/
+    hh/                       # @opencruit/parser-hh — HH API client, mapper, segments
     remoteok/                 # @opencruit/parser-remoteok — RemoteOK JSON API parser
     weworkremotely/           # @opencruit/parser-weworkremotely — WeWorkRemotely parser
 ```
@@ -48,7 +50,8 @@ pnpm format                   # Prettier write
 pnpm format:check             # Prettier check
 pnpm build                    # Build all packages
 pnpm dev                      # Dev mode
-pnpm ingest                   # Run parser → write to DB
+pnpm ingest                   # Run ingestion package (RemoteOK + WWR) → write to DB
+pnpm worker                   # Run BullMQ worker (HH index/hydrate/refresh/gc)
 ```
 
 ## Conventions
@@ -105,7 +108,8 @@ Not microservices. Two app processes + two infra. One codebase.
 ### Parser System
 
 - Parsers are npm packages imported by worker — not HTTP services, not separate containers
-- All implement `Parser` interface from `@opencruit/parser-sdk`
+- API/HTML parsers implement `Parser` from `@opencruit/parser-sdk` (RemoteOK, WWR)
+- HH integration uses 3-phase worker jobs (`hh.index`, `hh.hydrate`, `hh.refresh`) via `@opencruit/parser-hh` helpers
 - Light parsers (API/HTML) in one worker pool, Playwright parsers in heavy pool (when needed)
 - Ingestion pipeline: normalize → deduplicate → enrich → store → emit event
 - Deduplication: fingerprint (sha256 of company+title+location) + fuzzy matching (pg_trgm)
@@ -122,7 +126,7 @@ Not microservices. Two app processes + two infra. One codebase.
 
 ## Dependencies — Version Policy
 
-BEFORE installing any package (runtime, devDependency, @types/\*), search the web for its latest version.
+BEFORE installing any package (runtime, devDependency, @types/*), search the web for its latest version.
 NEVER use versions from memory or training data — they are likely outdated.
 This applies to everything: frameworks, tools, plugins, type definitions, eslint configs, etc.
 Use `catalog:` protocol — all dependency versions defined in `pnpm-workspace.yaml` catalog section.
