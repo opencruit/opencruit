@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "tsx src/migrate.ts",
+    "db:check": "drizzle-kit check",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },

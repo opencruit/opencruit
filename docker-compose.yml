@@ -5,16 +5,74 @@ services:
       POSTGRES_USER: opencruit
       POSTGRES_PASSWORD: opencruit
       POSTGRES_DB: opencruit
-    ports:
-      - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U opencruit -d opencruit']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   redis:
     image: redis:7-alpine
-    ports:
-      - '6379:6379'
     volumes:
       - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://opencruit:opencruit@postgres:5432/opencruit
+    command: pnpm --filter @opencruit/db db:migrate
+    restart: 'no'
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://opencruit:opencruit@postgres:5432/opencruit
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      LOG_SERVICE_NAME: opencruit-worker
+      HH_USER_AGENT: OpenCruit (dev@opencruit.dev)
+      HH_ACCESS_TOKEN: ${HH_ACCESS_TOKEN-}
+    command: pnpm worker
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://opencruit:opencruit@postgres:5432/opencruit
+      HOST: 0.0.0.0
+      PORT: 3000
+    command: node apps/web/build
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
 
 volumes:
   pgdata:

@@ -13,7 +13,13 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "worker": "pnpm --filter @opencruit/worker worker"
+    "worker": "pnpm --filter @opencruit/worker worker",
+    "stack:bootstrap": "bash ./scripts/ops/bootstrap.sh",
+    "stack:health": "bash ./scripts/ops/healthcheck.sh",
+    "stack:down": "bash ./scripts/ops/down.sh",
+    "stack:logs": "docker compose logs -f worker web",
+    "stack:report": "docker compose exec -T worker pnpm exec tsx /app/scripts/ops/source-report.ts",
+    "stack:ingest:once": "docker compose exec -T worker pnpm exec tsx /app/scripts/ops/enqueue-batch.ts"
   },
   "devDependencies": {
     "@opencruit/eslint-config": "workspace:*",

@@ -36,9 +36,20 @@ Not microservices. Two app processes + two infra services. One codebase, shared 
 
 ### Self-Hosting
 
-- Single `docker compose up` for local stack
-- Infra services: PostgreSQL + Redis
-- Apps run from monorepo commands (`pnpm dev`, `pnpm worker`)
+- Single `docker compose up -d --build` for full stack
+- Long-running services: `postgres`, `redis`, `worker`, `web`
+- One-shot bootstrap service: `migrate` (`pnpm --filter @opencruit/db db:migrate`)
+- Production schema lifecycle uses versioned SQL migrations in `packages/db/drizzle/*`
+- Local prototyping fallback: `pnpm --filter @opencruit/db db:push`
+- Ops runbooks:
+  - `docs/DEPLOYMENT.md`
+  - `docs/OPERATIONS.md`
+  - `docs/TROUBLESHOOTING.md`
+- Ops helper scripts:
+  - `scripts/ops/bootstrap.sh`
+  - `scripts/ops/healthcheck.sh`
+  - `scripts/ops/enqueue-batch.ts`
+  - `scripts/ops/source-report.ts`
 
 ## Parser System
 
@@ -158,14 +169,14 @@ Used for durable operational visibility beyond ephemeral logs.
 
 ## GC Policy (defaults)
 
-- `hh`: archive after 4 days without visibility (`last_seen_at`), delete archived/missing after 30 days
-- `remoteok`: archive after 7 days, delete archived/missing after 30 days
-- `weworkremotely`: archive after 7 days, delete archived/missing after 30 days
-- `remotive`: archive after 7 days, delete archived/missing after 30 days
-- `arbeitnow`: archive after 7 days, delete archived/missing after 30 days
-- `jobicy`: archive after 7 days, delete archived/missing after 30 days
-- `himalayas`: archive after 7 days, delete archived/missing after 30 days
-- unknown source fallback: archive 7 days, delete 30 days
+- `hh`: archive after 10 days, archived recheck in 30 days, delete archived/missing after 60 days
+- `remoteok`: archive after 14 days, archived recheck in 30 days, delete archived/missing after 90 days
+- `weworkremotely`: archive after 14 days, archived recheck in 30 days, delete archived/missing after 90 days
+- `remotive`: archive after 10 days, archived recheck in 30 days, delete archived/missing after 60 days
+- `arbeitnow`: archive after 21 days, archived recheck in 30 days, delete archived/missing after 90 days
+- `jobicy`: archive after 30 days, archived recheck in 45 days, delete archived/missing after 120 days
+- `himalayas`: archive after 14 days, archived recheck in 30 days, delete archived/missing after 90 days
+- unknown source fallback: archive 14 days, archived recheck in 30 days, delete archived/missing after 90 days
 
 ## Implementation Status
 

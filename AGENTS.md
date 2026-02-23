@@ -37,6 +37,10 @@ packages/
     hh/                       # @opencruit/parser-hh — HH API client, mapper, segments
     remoteok/                 # @opencruit/parser-remoteok — RemoteOK JSON API parser
     weworkremotely/           # @opencruit/parser-weworkremotely — WeWorkRemotely parser
+    remotive/                 # @opencruit/parser-remotive — Remotive API parser
+    arbeitnow/                # @opencruit/parser-arbeitnow — Arbeitnow API parser
+    jobicy/                   # @opencruit/parser-jobicy — Jobicy API parser
+    himalayas/                # @opencruit/parser-himalayas — Himalayas API parser
 ```
 
 ## Commands
@@ -51,6 +55,9 @@ pnpm format:check             # Prettier check
 pnpm build                    # Build all packages
 pnpm dev                      # Dev mode
 pnpm worker                   # Run BullMQ worker (source.ingest + hh.* + source.gc)
+pnpm stack:bootstrap          # Build/start full docker stack + healthcheck
+pnpm stack:health             # Validate docker stack health
+pnpm stack:down               # Stop docker stack
 ```
 
 ## Conventions
@@ -102,12 +109,12 @@ Not microservices. Two app processes + two infra. One codebase.
 - **Worker** (BullMQ consumer) — parser jobs, ingestion pipeline, background tasks
 - **PostgreSQL** — primary storage, full-text search (tsvector)
 - **Redis** — BullMQ queues, Streams (events), cache
-- Deploy: `docker compose up` — 4 containers total
+- Deploy: `docker compose up` — 4 long-running containers (`postgres`, `redis`, `worker`, `web`) + 1 one-shot migration container (`migrate`)
 
 ### Parser System
 
 - Parsers are npm packages imported by worker — not HTTP services, not separate containers
-- Batch parsers implement `Parser` from `@opencruit/parser-sdk` via `defineParser` (RemoteOK, WWR)
+- Batch parsers implement `Parser` from `@opencruit/parser-sdk` via `defineParser` (RemoteOK, WWR, Remotive, Arbeitnow, Jobicy, Himalayas)
 - Sources are registered in worker source catalog via `defineSource` (batch + workflow)
 - Batch sources are orchestrated by worker job `source.ingest` (schedule override via `SOURCE_SCHEDULE_<SOURCE_ID>`)
 - HH integration uses workflow source contract and 3-phase jobs (`hh.index`, `hh.hydrate`, `hh.refresh`) via `@opencruit/parser-hh` helpers
@@ -115,18 +122,19 @@ Not microservices. Two app processes + two infra. One codebase.
 - Worker emits structured JSON logs (pino) via worker lifecycle hooks (`active`, `completed`, `failed`) with `traceId` propagation
 - Worker persists per-source runtime health in PostgreSQL `source_health` (`last_success_at`, `last_error_at`, `consecutive_failures`)
 - Light parsers (API/HTML) in one worker pool, Playwright parsers in heavy pool (when needed)
-- Ingestion pipeline: normalize → deduplicate → enrich → store → emit event
-- Deduplication: fingerprint (sha256 of company+title+location) + fuzzy matching (pg_trgm)
+- Ingestion pipeline: validate → normalize → fingerprint → deduplicate → store
+- Deduplication: fingerprint (sha256 of company+title+location) with first-source-wins conflict policy
 
 ### Events & Search
 
-- Redis Streams for job events (job.new, job.updated, job.expired)
 - MVP search: PostgreSQL tsvector. Future: Meilisearch behind abstraction
 
 ### Self-Hosting
 
-- Single `docker compose up` — all features available (AGPL, not open-core)
-- Minimal `.env` configuration
+- Single `docker compose up -d --build` — all features available (AGPL, not open-core)
+- Migrations run as one-shot `migrate` service (`pnpm --filter @opencruit/db db:migrate`) before `worker`/`web`
+- `db:push` is local prototyping only; production path is versioned SQL migrations in `packages/db/drizzle`
+- Operational runbooks: `docs/DEPLOYMENT.md`, `docs/OPERATIONS.md`, `docs/TROUBLESHOOTING.md`
 
 ## Dependencies — Version Policy
 

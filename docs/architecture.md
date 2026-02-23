@@ -72,12 +72,15 @@ raw job -> validate -> normalize -> fingerprint -> dedup -> store
 ## Infrastructure
 
 ```
-docker compose up
+docker compose up -d --build
 ├── PostgreSQL
-└── Redis
+├── Redis
+├── migrate (one-shot)
+├── worker
+└── web
 ```
 
-Apps run from workspace commands (`pnpm dev`, `pnpm worker`).
+Migrations are applied by `migrate` before `worker`/`web` startup (`pnpm --filter @opencruit/db db:migrate`).
 
 ## Data Flow
 

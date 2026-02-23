@@ -40,7 +40,21 @@ Worker also writes durable health rows to PostgreSQL table `source_health` keyed
 
 This allows tracking source health even after process restarts or log rotation.
 
-## Local Debug Commands
+## Debug Commands
+
+Docker stack (recommended):
+
+```bash
+docker compose logs -f worker
+```
+
+Docker stack + jq:
+
+```bash
+docker compose logs -f worker | jq
+```
+
+Host process mode:
 
 Run worker and pretty-print:
 
