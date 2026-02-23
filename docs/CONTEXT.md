@@ -1,26 +1,78 @@
 # OpenCruit — Project Context
 
-## Architecture
+## Architecture — Modular Monolith
+
+Not microservices. Two app processes + two infra services. One codebase, shared modules.
+
+```
+┌────────────────────────────────────────────────────┐
+│                  Monorepo (one codebase)            │
+│                                                     │
+│  ┌──────────────────┐   ┌───────────────────────┐  │
+│  │    Web App        │   │      Worker           │  │
+│  │    (SvelteKit)    │   │   (BullMQ consumer)   │  │
+│  │                   │   │                       │  │
+│  │  • UI / SSR       │   │  • Parser jobs        │  │
+│  │  • API routes     │   │  • Ingestion pipeline │  │
+│  │  • Search         │   │  • Dedup (background) │  │
+│  │  • Auth           │   │  • AI enrichment      │  │
+│  │                   │   │  • Notifications      │  │
+│  └────────┬──────────┘   └──────────┬────────────┘  │
+│           │       Shared modules    │               │
+│           │  • @opencruit/db        │               │
+│           │  • @opencruit/parser-sdk│               │
+│           │  • @opencruit/types     │               │
+│           └────────────┬────────────┘               │
+└────────────────────────┼────────────────────────────┘
+                         │
+               ┌─────────┼─────────┐
+               ▼                   ▼
+         ┌──────────┐        ┌──────────┐
+         │ Postgres │        │  Redis   │
+         │ • jobs   │        │ • BullMQ │
+         │ • users  │        │ • cache  │
+         │ • search │        │ • events │
+         └──────────┘        └──────────┘
+```
+
+### Self-Hosting
+
+- Single `docker compose up` — 4 containers: postgres, redis, web, worker
+- Minimal `.env` configuration
+- One Redis for everything (BullMQ queues + Streams + cache)
 
 ### Parser System
 
-- Parsers are standalone HTTP services with 3 endpoints: `/manifest`, `/health`, `/parse`
-- Language-agnostic contract — any language can implement it (Node, Rust, Go)
-- Node.js parsers use `@opencruit/parser-sdk` for types, Zod schema validation, and utilities
-- `/parse` returns NDJSON stream for large result sets
+- Parsers are **npm packages** in the monorepo, imported by the worker process
+- All parsers implement the `Parser` interface from `@opencruit/parser-sdk`
+- Worker calls `parser.parse()` directly — no HTTP overhead, no separate containers
+- `@opencruit/parser-sdk` provides types, Zod validation, and utilities
 - Orchestrator (BullMQ + Redis) manages scheduling, retries, concurrency
+
+### Parser Types by Complexity
+
+- **API parsers** — fetch JSON, map fields (RemoteOK, WeWorkRemotely). Lightweight
+- **HTML scraping** — fetch + cheerio. Lightweight
+- **Playwright** — browser-based for SPAs, anti-bot sites. Heavy (500MB+ RAM)
+- **Platform parsers** — Telegram, Discord, RSS feeds. Varies
+
+### Worker Pools
+
+- **Light pool** — API, HTML, RSS parsers. All run in one process
+- **Heavy pool** — Playwright parsers. Separate process with Chrome installed
+- Same codebase, different entry points (`--pool=light` vs `--pool=heavy`)
+- Heavy pool only deployed when Playwright parsers exist
 
 ### Parser Distribution
 
 - **Open parsers** — in main repo under `packages/parsers/`. Simple sources with public APIs
 - **Private parsers** — separate private repo `opencruit/parsers-private`. Anti-bot sensitive sources
-- **Community parsers** — any external repo. Install `@opencruit/parser-sdk` from npm, publish Docker image
-- All three types implement the same HTTP contract
+- **Community parsers** — install `@opencruit/parser-sdk` from npm, publish as npm package
 
 ### Ingestion Pipeline
 
 - Raw job → normalize → validate → fingerprint → deduplicate → enrich → store → emit event
-- Runs as BullMQ worker, all stages in-process (MVP)
+- Runs as BullMQ worker, all stages in-process
 
 ### Deduplication (3 tiers)
 
@@ -38,10 +90,16 @@
 - MVP: PostgreSQL tsvector with weighted full-text search
 - Future: Meilisearch behind `SearchProvider` abstraction
 
-### Self-Hosting
+### When to Extract a Service
 
-- Single `docker compose up` — PostgreSQL + Redis + app services
-- One Redis for everything (BullMQ queues + Streams + cache)
+Not preemptively. Only when a real problem appears:
+
+| Signal | Action |
+|--------|--------|
+| Playwright parsers eat too much RAM | Deploy heavy pool as separate container |
+| tsvector search not enough | Add Meilisearch container |
+| AI matching needs GPU | Separate ML service |
+| 100k+ users | CDN + horizontal scaling of web |
 
 ## Implementation Plan (vertical slice)
 
@@ -69,16 +127,16 @@ Only when 2+ parsers exist and scheduling is needed. Until then — cron is enou
 ### Deferred (not MVP)
 
 - Redis Streams / events — no consumers yet
-- NDJSON streaming in `/parse` — RemoteOK returns <200 jobs
-- Parser as HTTP service (`/manifest`, `/health`, `/parse`) — parsers stay as functions until orchestrator exists
-- Second/third parsers — after pipeline works end-to-end
+- BullMQ orchestrator — cron/manual ingest is enough for now
+- Worker process — `scripts/ingest.ts` serves as proto-worker
+- AI enrichment, notifications, auth
 
 ## Parser SDK
 
 - Build iteratively by writing real parsers
-- First parser: RemoteOK (JSON API) — **done**, fixture-based tests passing
-- SDK exports: `RawJob` type, `rawJobSchema` (Zod), `validateRawJobs()` utility
-- HTTP server wrapper, `defineParser()`, `testParser()` — deferred until orchestrator step
+- Parsers: RemoteOK (JSON API), WeWorkRemotely (HTML scraping) — **done**, tests passing
+- SDK exports: `RawJob` type, `Parser` interface, `rawJobSchema` (Zod), `validateRawJobs()` utility
+- `pnpm ingest` runs all parsers sequentially → validates → fingerprints → upserts to DB
 
 ### Parser Testing
 
@@ -125,6 +183,7 @@ packages/
   db/               # @opencruit/db — Drizzle schema, client, migrations
   parsers/
     remoteok/       # @opencruit/parser-remoteok — RemoteOK JSON API parser
+    weworkremotely/ # @opencruit/parser-weworkremotely — WeWorkRemotely HTML parser
 ```
 
 Internal packages have no build step — exports point to `./src/index.ts`.

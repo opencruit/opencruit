@@ -33,6 +33,7 @@ packages/
   db/                         # @opencruit/db — Drizzle schema, client, migrations
   parsers/
     remoteok/                 # @opencruit/parser-remoteok — RemoteOK JSON API parser
+    weworkremotely/           # @opencruit/parser-weworkremotely — WeWorkRemotely parser
 ```
 
 ## Commands
@@ -90,31 +91,33 @@ pnpm ingest                   # Run parser → write to DB
 - Only scaffold what is being actively worked on
 - Package naming: `@opencruit/<name>`
 
-## Architecture Decisions
+## Architecture — Modular Monolith
 
-### Parser System (planned)
+Not microservices. Two app processes + two infra. One codebase.
 
-- Parsers are HTTP services with 3 endpoints: `/manifest`, `/health`, `/parse`
-- Language-agnostic contract (Node/Rust/Go parsers all implement same HTTP interface)
-- Orchestrator manages scheduling via BullMQ + Redis
+- **Web** (SvelteKit) — UI, SSR, API routes, search, auth
+- **Worker** (BullMQ consumer) — parser jobs, ingestion pipeline, background tasks
+- **PostgreSQL** — primary storage, full-text search (tsvector)
+- **Redis** — BullMQ queues, Streams (events), cache
+- Deploy: `docker compose up` — 4 containers total
+
+### Parser System
+
+- Parsers are npm packages imported by worker — not HTTP services, not separate containers
+- All implement `Parser` interface from `@opencruit/parser-sdk`
+- Light parsers (API/HTML) in one worker pool, Playwright parsers in heavy pool (when needed)
 - Ingestion pipeline: normalize → deduplicate → enrich → store → emit event
 - Deduplication: fingerprint (sha256 of company+title+location) + fuzzy matching (pg_trgm)
 
-### Event System (planned)
+### Events & Search
 
 - Redis Streams for job events (job.new, job.updated, job.expired)
-- Consumer groups for notification service, search indexer, analytics
-
-### Search (planned)
-
-- MVP: PostgreSQL tsvector with weighted full-text search
-- Future: Meilisearch behind `SearchProvider` abstraction
+- MVP search: PostgreSQL tsvector. Future: Meilisearch behind abstraction
 
 ### Self-Hosting
 
-- Single `docker compose up` with PostgreSQL + Redis + app services
+- Single `docker compose up` — all features available (AGPL, not open-core)
 - Minimal `.env` configuration
-- All features available in self-hosted mode (AGPL, not open-core)
 
 ## Dependencies — Version Policy
 
