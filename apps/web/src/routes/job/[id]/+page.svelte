@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { Button } from '$lib/components/ui/button/index.js';
 
   let { data }: { data: PageData } = $props();
   let job = $derived(data.job);
@@ -9,30 +10,36 @@
   <title>{job.title} at {job.company} | OpenCruit</title>
 </svelte:head>
 
-<div class="mb-4">
-  <a href="/" class="text-sm text-blue-600 hover:underline">&larr; Back to jobs</a>
+<div class="mb-6">
+  <a href="/" class="text-sm text-muted-foreground transition-colors hover:text-foreground">&larr; Back to jobs</a>
 </div>
 
-<article class="rounded-lg border border-gray-200 bg-white p-6">
-  <div class="flex items-start gap-4">
+<article class="rounded-xl border border-border/50 bg-card p-8">
+  <div class="flex items-start gap-5">
     {#if job.companyLogoUrl}
-      <img src={job.companyLogoUrl} alt="{job.company} logo" class="h-16 w-16 rounded-lg object-contain" />
+      <img
+        src={job.companyLogoUrl}
+        alt="{job.company} logo"
+        class="h-14 w-14 rounded-xl bg-muted object-contain p-1"
+      />
     {/if}
     <div>
-      <h1 class="text-2xl font-bold">{job.title}</h1>
-      <p class="text-lg text-gray-600">{job.company}</p>
+      <h1 class="text-xl font-semibold text-foreground">{job.title}</h1>
+      <p class="mt-1 text-muted-foreground">{job.company}</p>
     </div>
   </div>
 
-  <div class="mt-4 flex flex-wrap gap-3 text-sm text-gray-600">
+  <div class="mt-5 flex flex-wrap gap-2.5 text-sm">
     {#if job.location}
-      <span>{job.location}</span>
+      <span class="text-muted-foreground">{job.location}</span>
     {/if}
     {#if job.isRemote}
-      <span class="rounded-full bg-green-100 px-2.5 py-0.5 text-green-800">Remote</span>
+      <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-400">
+        Remote
+      </span>
     {/if}
     {#if job.salary}
-      <span class="font-medium">
+      <span class="font-medium text-foreground">
         {#if job.salary.min && job.salary.max}
           ${job.salary.min.toLocaleString()}–${job.salary.max.toLocaleString()} {job.salary.currency ?? 'USD'}
         {:else if job.salary.min}
@@ -45,27 +52,22 @@
   </div>
 
   {#if job.tags && job.tags.length > 0}
-    <div class="mt-4 flex flex-wrap gap-2">
+    <div class="mt-5 flex flex-wrap gap-1.5">
       {#each job.tags as tag (tag)}
-        <span class="rounded bg-gray-100 px-2.5 py-1 text-sm text-gray-700">{tag}</span>
+        <span class="rounded-md bg-secondary px-2.5 py-1 text-xs text-secondary-foreground">{tag}</span>
       {/each}
     </div>
   {/if}
 
   <div class="mt-6">
-    <a
-      href={job.applyUrl ?? job.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="inline-block rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
-    >
-      Apply
-    </a>
+    <Button href={job.applyUrl ?? job.url} target="_blank" rel="noopener noreferrer">
+      Apply for this position
+    </Button>
   </div>
 
-  <hr class="my-6 border-gray-200" />
+  <hr class="my-8 border-border/50" />
 
-  <div class="prose prose-sm max-w-none">
+  <div class="prose prose-sm prose-invert max-w-none text-muted-foreground [&_a]:text-primary [&_a]:underline [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_strong]:text-foreground [&_li]:marker:text-muted-foreground">
     {@html job.description}
   </div>
 </article>

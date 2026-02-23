@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { Input } from '$lib/components/ui/input/index.js';
+  import { Button } from '$lib/components/ui/button/index.js';
 
   let { data }: { data: PageData } = $props();
 
@@ -40,69 +42,74 @@
 </svelte:head>
 
 {#if data.error}
-  <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+  <div class="mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
     {data.error}
   </div>
 {/if}
 
-<div class="mb-6">
-  <input
-    type="text"
-    bind:value={search}
-    placeholder="Search jobs, companies, or tags..."
-    class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-  />
+<div class="mb-8 flex items-center gap-3">
+  <Input type="text" bind:value={search} placeholder="Search jobs, companies, or tags..." class="flex-1" />
+  {#if search}
+    <Button variant="ghost" size="sm" onclick={() => (search = '')}>Clear</Button>
+  {/if}
 </div>
 
-<p class="mb-4 text-sm text-gray-500">{filteredJobs.length} jobs</p>
+<p class="mb-4 text-sm text-muted-foreground">{filteredJobs.length} jobs found</p>
 
-<div class="space-y-3">
+<div class="grid gap-3">
   {#each filteredJobs as job (job.externalId)}
     <a
       href="/job/{encodeURIComponent(job.externalId)}"
-      class="block rounded-lg border border-gray-200 bg-white p-4 transition-shadow hover:shadow-md"
+      class="group rounded-xl border border-border/50 bg-card p-5 transition-all hover:border-border hover:bg-accent/50"
     >
       <div class="flex items-start gap-4">
         {#if job.companyLogoUrl}
           <img
             src={job.companyLogoUrl}
             alt="{job.company} logo"
-            class="h-12 w-12 shrink-0 rounded-lg object-contain"
+            class="h-11 w-11 shrink-0 rounded-lg bg-muted object-contain p-0.5"
           />
         {:else}
           <div
-            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-lg font-bold text-gray-400"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-sm font-semibold text-muted-foreground"
           >
             {job.company.charAt(0)}
           </div>
         {/if}
 
         <div class="min-w-0 flex-1">
-          <h2 class="text-base font-semibold text-gray-900">{job.title}</h2>
-          <p class="text-sm text-gray-600">{job.company}</p>
+          <div class="flex items-baseline justify-between gap-4">
+            <h2 class="truncate text-sm font-medium text-foreground group-hover:text-primary">
+              {job.title}
+            </h2>
+            {#if job.postedAt}
+              <span class="shrink-0 text-xs text-muted-foreground">{timeAgo(job.postedAt)}</span>
+            {/if}
+          </div>
 
-          <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+          <p class="mt-0.5 text-sm text-muted-foreground">{job.company}</p>
+
+          <div class="mt-2.5 flex flex-wrap items-center gap-2">
             {#if job.location}
-              <span>{job.location}</span>
+              <span class="text-xs text-muted-foreground">{job.location}</span>
             {/if}
             {#if job.isRemote}
-              <span class="rounded-full bg-green-100 px-2 py-0.5 text-green-800">Remote</span>
+              <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-400">
+                Remote
+              </span>
             {/if}
             {#if job.salary}
-              <span class="font-medium text-gray-700">{formatSalary(job.salary)}</span>
-            {/if}
-            {#if job.postedAt}
-              <span>{timeAgo(job.postedAt)}</span>
+              <span class="text-xs font-medium text-foreground">{formatSalary(job.salary)}</span>
             {/if}
           </div>
 
           {#if job.tags && job.tags.length > 0}
-            <div class="mt-2 flex flex-wrap gap-1.5">
-              {#each job.tags.slice(0, 5) as tag (tag)}
-                <span class="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{tag}</span>
+            <div class="mt-2.5 flex flex-wrap gap-1.5">
+              {#each job.tags.slice(0, 4) as tag (tag)}
+                <span class="rounded-md bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{tag}</span>
               {/each}
-              {#if job.tags.length > 5}
-                <span class="text-xs text-gray-400">+{job.tags.length - 5}</span>
+              {#if job.tags.length > 4}
+                <span class="px-1 text-xs text-muted-foreground">+{job.tags.length - 4}</span>
               {/if}
             </div>
           {/if}
@@ -113,11 +120,12 @@
 </div>
 
 {#if filteredJobs.length === 0 && !data.error}
-  <div class="py-12 text-center text-gray-500">
+  <div class="py-16 text-center">
     {#if search}
-      No jobs match "{search}". Try a different search.
+      <p class="text-muted-foreground">No jobs match "<span class="text-foreground">{search}</span>"</p>
+      <Button variant="ghost" size="sm" class="mt-3" onclick={() => (search = '')}>Clear search</Button>
     {:else}
-      No jobs available right now.
+      <p class="text-muted-foreground">No jobs available right now.</p>
     {/if}
   </div>
 {/if}

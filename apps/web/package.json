@@ -16,15 +16,20 @@
     "@opencruit/parser-sdk": "workspace:*"
   },
   "devDependencies": {
+    "@lucide/svelte": "catalog:",
     "@opencruit/eslint-config": "workspace:*",
     "@opencruit/tsconfig": "workspace:*",
     "@sveltejs/adapter-node": "catalog:",
     "@sveltejs/kit": "catalog:",
     "@tailwindcss/vite": "catalog:",
+    "clsx": "catalog:",
     "eslint": "catalog:",
     "svelte": "catalog:",
     "svelte-check": "catalog:",
+    "tailwind-merge": "catalog:",
+    "tailwind-variants": "catalog:",
     "tailwindcss": "catalog:",
+    "tw-animate-css": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:"
   }
