@@ -16,11 +16,6 @@ export default defineConfig(
         ...globals.browser,
         ...globals.node,
       },
-      parserOptions: {
-        projectService: {
-          allowDefaultProject: ['*.config.mjs', '*.config.js', '*.mjs'],
-        },
-      },
     },
   },
   {

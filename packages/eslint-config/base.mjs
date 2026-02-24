@@ -13,11 +13,6 @@ export default defineConfig(
       globals: {
         ...globals.node,
       },
-      parserOptions: {
-        projectService: {
-          allowDefaultProject: ['*.config.mjs', '*.config.js', '*.config.ts', '*.mjs'],
-        },
-      },
     },
   },
   eslintConfigPrettier,

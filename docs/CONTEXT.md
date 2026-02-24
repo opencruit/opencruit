@@ -219,6 +219,11 @@ Used for durable operational visibility beyond ephemeral logs.
 - `smartrecruiters`: archive after 14 days, archived recheck in 30 days, delete archived/missing after 90 days
 - unknown source fallback: archive 14 days, archived recheck in 30 days, delete archived/missing after 90 days
 
+## Tooling Decisions
+
+- ESLint uses flat config with `typescript-eslint` `recommended` rules (no type-aware linting / no `projectService`) to keep lint runs fast in local dev.
+- Turborepo task cache (`pnpm lint`) is the default lint caching layer for the monorepo.
+
 ## Admin Panel
 
 - Route group `(admin)/admin/` in `apps/web` (same SvelteKit process, own sidebar layout)

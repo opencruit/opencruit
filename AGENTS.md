@@ -93,7 +93,7 @@ pnpm stack:down               # Stop docker stack
 
 - Shared configs in `packages/tsconfig/` — `base.json`, `node.json`, `svelte.json`
 - All packages extend from shared configs
-- `projectService: true` in ESLint for automatic tsconfig discovery
+- ESLint configs are non-type-aware by default (`typescript-eslint` recommended, no `projectService`) for fast lint feedback
 
 ### Git
 
