@@ -22,6 +22,7 @@ export const load: PageServerLoad = async ({ params }) => {
       location: row.location ?? undefined,
       isRemote: row.isRemote ?? undefined,
       description: row.description,
+      descriptionRich: row.descriptionRich ?? undefined,
       tags: row.tags ?? undefined,
       salary:
         row.salaryMin !== null || row.salaryMax !== null

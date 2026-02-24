@@ -5,6 +5,8 @@ import {
   stripRemoteOKSpam,
   normalizeTags,
   normalizeLocation,
+  sanitizeRichHtml,
+  toRichDescription,
   normalize,
 } from '../src/normalize.js';
 import type { ValidatedRawJob } from '@opencruit/parser-sdk';
@@ -63,6 +65,44 @@ describe('stripHtml', () => {
 
   it('decodes &nbsp;', () => {
     expect(stripHtml('hello&nbsp;world')).toBe('hello world');
+  });
+});
+
+describe('sanitizeRichHtml', () => {
+  it('keeps allowed formatting tags', () => {
+    const html = '<p>Hello <strong>world</strong></p><ul><li>One</li></ul>';
+    const result = sanitizeRichHtml(html);
+
+    expect(result).toContain('<p>');
+    expect(result).toContain('<strong>world</strong>');
+    expect(result).toContain('<li>One</li>');
+  });
+
+  it('removes dangerous tags and attributes', () => {
+    const html = '<script>alert(1)</script><p onclick="x()">Text</p><a href="javascript:alert(1)">x</a>';
+    const result = sanitizeRichHtml(html);
+
+    expect(result).not.toContain('<script');
+    expect(result).not.toContain('onclick=');
+    expect(result).not.toContain('javascript:');
+  });
+
+  it('preserves safe links', () => {
+    const html = '<a href="https://example.com/jobs/1">Apply</a>';
+    const result = sanitizeRichHtml(html);
+    expect(result).toContain('<a href="https://example.com/jobs/1"');
+    expect(result).toContain('rel="nofollow noopener noreferrer"');
+  });
+});
+
+describe('toRichDescription', () => {
+  it('builds paragraph/list markup from plain text', () => {
+    const plain = 'Summary line\n\n- First item\n- Second item';
+    const result = toRichDescription(plain, plain);
+
+    expect(result).toContain('<p>Summary line</p>');
+    expect(result).toContain('<ul>');
+    expect(result).toContain('<li>First item</li>');
   });
 });
 
@@ -175,6 +215,7 @@ describe('normalize', () => {
     expect(result.description).not.toContain('<');
     expect(result.description).toContain('Hello');
     expect(result.description).toContain('world');
+    expect(result.descriptionRich).toContain('<p>Hello <strong>world</strong></p>');
   });
 
   it('strips RemoteOK spam from description', () => {
@@ -183,6 +224,7 @@ describe('normalize', () => {
     const result = normalize(makeJob({ description: desc }));
     expect(result.description).not.toContain('TEST');
     expect(result.description).toContain('Real content');
+    expect(result.descriptionRich).not.toContain('TEST');
   });
 
   it('normalizes location', () => {

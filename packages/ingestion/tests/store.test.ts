@@ -17,6 +17,7 @@ function makeOutcome(
     title: 'Engineer',
     company: 'Acme',
     description: 'Job description',
+    descriptionRich: '<p>Job description</p>',
     ...overrides,
     _normalized: true as const,
   };
@@ -115,5 +116,21 @@ describe('store', () => {
     expect(rows[0]?.salaryMax).toBe(75_001);
     expect(rows[1]?.salaryMin).toBeNull();
     expect(rows[1]?.salaryMax).toBeNull();
+  });
+
+  it('stores rich description alongside plain description', async () => {
+    const { db, values } = mockDb();
+    const outcomes: DedupOutcome[] = [
+      makeOutcome('insert', 'source-a', 'ext-rich', 'fp-rich', {
+        description: 'Plain text',
+        descriptionRich: '<p><strong>Plain</strong> text</p>',
+      }),
+    ];
+
+    await store(outcomes, db);
+
+    const [rows] = values.mock.calls[0]!;
+    expect(rows[0]?.description).toBe('Plain text');
+    expect(rows[0]?.descriptionRich).toBe('<p><strong>Plain</strong> text</p>');
   });
 });

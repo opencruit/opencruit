@@ -149,7 +149,7 @@ Not microservices. Two app processes + infra/observability services. One codebas
 
 Stages:
 - validate (parser-sdk Zod)
-- normalize (text cleanup, HTML stripping)
+- normalize (text cleanup + safe rich-description normalization)
 - fingerprint (sha256 company+title+location)
 - dedup (Tier 2 fingerprint policy)
 - store (upsert with refresh metadata)
@@ -163,6 +163,7 @@ Stages:
 
 - `status` (`active` | `archived` | `missing`)
 - `content_hash`
+- `description_rich` (sanitized rich HTML for UI rendering; plain `description` stays canonical for search)
 - `last_checked_at`
 - `next_check_at`
 - `first_seen_at`

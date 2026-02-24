@@ -86,7 +86,14 @@
 
   <hr class="my-8 border-border/50" />
 
-  <div class="prose prose-sm prose-invert max-w-none text-muted-foreground [&_a]:text-primary [&_a]:underline [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_strong]:text-foreground [&_li]:marker:text-muted-foreground">
-    {@html job.description}
-  </div>
+  {#if job.descriptionRich}
+    <div class="prose prose-sm prose-invert max-w-none text-muted-foreground [&_a]:text-primary [&_a]:underline [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_strong]:text-foreground [&_li]:marker:text-muted-foreground">
+      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+      {@html job.descriptionRich}
+    </div>
+  {:else}
+    <div class="max-w-none whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
+      {job.description}
+    </div>
+  {/if}
 </article>

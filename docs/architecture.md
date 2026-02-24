@@ -62,6 +62,7 @@ raw job -> validate -> normalize -> fingerprint -> dedup -> store
 ```
 
 - `@opencruit/ingestion` is a pure library reused by worker jobs.
+- Normalization keeps `description` as plain text and prepares sanitized `description_rich` for UI formatting.
 - Shared utilities: `computeContentHash`, `computeNextCheckAt`.
 
 ### Data Layer

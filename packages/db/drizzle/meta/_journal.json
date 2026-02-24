@@ -8,6 +8,13 @@
       "when": 1771883215043,
       "tag": "0000_lumpy_wild_child",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771920369117,
+      "tag": "0001_tense_yellow_claw",
+      "breakpoints": true
     }
   ]
 }

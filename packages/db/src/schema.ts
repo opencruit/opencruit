@@ -32,6 +32,7 @@ export const jobs = pgTable(
     location: varchar({ length: 255 }),
     isRemote: boolean('is_remote').default(false),
     description: text().notNull(),
+    descriptionRich: text('description_rich'),
     tags: text().array(),
     salaryMin: integer('salary_min'),
     salaryMax: integer('salary_max'),

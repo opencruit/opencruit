@@ -1,6 +1,8 @@
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { config as loadEnvFile } from 'dotenv';
 import { sql } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { createDatabase } from './client.js';
@@ -20,6 +22,21 @@ interface JournalFile {
 }
 
 const LEGACY_TABLES = ['jobs', 'source_cursors', 'source_health'] as const;
+const ENV_FILES = ['.env', '.env.local'] as const;
+
+function loadDatabaseEnv(): void {
+  const currentDir = dirname(fileURLToPath(import.meta.url));
+  const repoRoot = resolve(currentDir, '../../../');
+
+  for (const fileName of ENV_FILES) {
+    const filePath = resolve(repoRoot, fileName);
+    if (!existsSync(filePath)) {
+      continue;
+    }
+
+    loadEnvFile({ path: filePath, override: fileName === '.env.local' });
+  }
+}
 
 async function tableExists(db: ReturnType<typeof createDatabase>, tableName: string): Promise<boolean> {
   const rows = await db.execute(sql`
@@ -84,9 +101,11 @@ async function bootstrapLegacyDatabase(db: ReturnType<typeof createDatabase>): P
 }
 
 async function main(): Promise<void> {
+  loadDatabaseEnv();
+
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    throw new Error('DATABASE_URL environment variable is required');
+    throw new Error('DATABASE_URL environment variable is required (.env or .env.local at repo root)');
   }
 
   const db = createDatabase(databaseUrl);

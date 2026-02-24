@@ -2,9 +2,10 @@ import type { ValidatedRawJob } from '@opencruit/parser-sdk';
 
 /**
  * After normalization: all text fields cleaned, tags lowercased/deduped,
- * HTML stripped from descriptions. Branded type to prevent mixing with raw validated jobs.
+ * plain-text + rich-safe descriptions prepared. Branded type to prevent mixing with raw validated jobs.
  */
 export interface NormalizedJob extends ValidatedRawJob {
+  descriptionRich: string;
   readonly _normalized: true;
 }
 
