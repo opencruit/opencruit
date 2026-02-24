@@ -13,16 +13,20 @@
   },
   "dependencies": {
     "@opencruit/db": "workspace:*",
+    "bullmq": "catalog:",
     "drizzle-orm": "catalog:",
+    "ioredis": "catalog:",
     "mode-watcher": "catalog:"
   },
   "devDependencies": {
+    "@internationalized/date": "catalog:",
     "@lucide/svelte": "catalog:",
     "@opencruit/eslint-config": "workspace:*",
     "@opencruit/tsconfig": "workspace:*",
     "@sveltejs/adapter-node": "catalog:",
     "@sveltejs/kit": "catalog:",
     "@tailwindcss/vite": "catalog:",
+    "bits-ui": "catalog:",
     "clsx": "catalog:",
     "eslint": "catalog:",
     "svelte": "catalog:",

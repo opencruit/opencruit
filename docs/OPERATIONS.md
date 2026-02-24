@@ -17,7 +17,7 @@ pnpm dev:infra
 pnpm dev:web
 ```
 
-`pnpm dev:infra` uses `docker-compose.dev.yml` to expose Postgres on localhost for local web SSR and stops containerized `web` to avoid confusion with `localhost:3000`.
+`pnpm dev:infra` uses `docker-compose.dev.yml` to expose Postgres + Redis on localhost for local web SSR/admin and stops containerized `web` to avoid confusion with `localhost:3000`.
 It also starts `prometheus` (`http://localhost:9090`) and `grafana` (`http://localhost:3001`) for local observability.
 Use `http://localhost:5973` for local HMR UI.
 

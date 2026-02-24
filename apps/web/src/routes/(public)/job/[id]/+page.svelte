@@ -1,25 +1,11 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import { Button } from '$lib/components/ui/button/index.js';
-
-  const sourceLabels: Record<string, string> = {
-    hh: 'HeadHunter',
-    remoteok: 'RemoteOK',
-    weworkremotely: 'WeWorkRemotely',
-    remotive: 'Remotive',
-    arbeitnow: 'Arbeitnow',
-    jobicy: 'Jobicy',
-    himalayas: 'Himalayas',
-    adzuna: 'Adzuna',
-    jooble: 'Jooble',
-    greenhouse: 'Greenhouse',
-    lever: 'Lever',
-    smartrecruiters: 'SmartRecruiters',
-  };
+  import { getSourceLabel } from '$lib/sources.js';
 
   let { data }: { data: PageData } = $props();
   let job = $derived(data.job);
-  let sourceLabel = $derived(sourceLabels[job.sourceId] ?? job.sourceId);
+  let sourceLabel = $derived(getSourceLabel(job.sourceId));
 </script>
 
 <svelte:head>

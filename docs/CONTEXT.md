@@ -43,7 +43,7 @@ Not microservices. Two app processes + infra/observability services. One codebas
 ### Self-Hosting
 
 - Single `docker compose up -d --build` for full stack
-- Local hybrid frontend dev uses `docker-compose.dev.yml` to expose Postgres on host (`pnpm dev:infra` + `pnpm dev:web` on `http://localhost:5973`)
+- Local hybrid frontend dev uses `docker-compose.dev.yml` to expose Postgres + Redis on host (`pnpm dev:infra` + `pnpm dev:web` on `http://localhost:5973`)
 - Long-running services: `postgres`, `redis`, `worker`, `web`, `prometheus`, `grafana`
 - One-shot bootstrap service: `migrate` (`pnpm --filter @opencruit/db db:migrate`)
 - Production schema lifecycle uses versioned SQL migrations in `packages/db/drizzle/*`
@@ -219,12 +219,26 @@ Used for durable operational visibility beyond ephemeral logs.
 - `smartrecruiters`: archive after 14 days, archived recheck in 30 days, delete archived/missing after 90 days
 - unknown source fallback: archive 14 days, archived recheck in 30 days, delete archived/missing after 90 days
 
+## Admin Panel
+
+- Route group `(admin)/admin/` in `apps/web` (same SvelteKit process, own sidebar layout)
+- Public routes in `(public)/` route group, root layout is minimal (CSS + ModeWatcher)
+- Pages: Dashboard, Sources (list + detail + trigger ingest), Queues (job counts + failed jobs + retry/remove/clean), Jobs (filterable browser)
+- Web app connects to Redis for BullMQ `Queue` instances (read + enqueue, not Worker)
+- Source metadata: static `KNOWN_SOURCES` map in `$lib/sources.ts`, shared by admin + public pages
+- Server singletons: `$lib/server/redis.ts` (IORedis), `$lib/server/queues.ts` (5 BullMQ Queue instances)
+- `globalThis` pattern used for Redis/Queue singletons to survive HMR in dev
+- No auth guard yet — admin routes are public, future: `hooks.server.ts` role check
+- Queue name constants and job data types are duplicated from worker (~30 lines, pragmatic)
+- Docker: web service now depends on `redis` and receives `REDIS_URL` env var
+
 ## Implementation Status
 
 - Step 1 — Web app: **done**
 - Step 2 — PostgreSQL + Drizzle: **done**
 - Step 3 — Ingestion package: **done**
 - Step 4 — Redis + BullMQ + HH worker: **done**
+- Step 5 — Admin panel: **done**
 
 ## Monorepo Structure (current)
 

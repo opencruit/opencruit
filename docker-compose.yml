@@ -68,10 +68,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
       migrate:
         condition: service_completed_successfully
     environment:
       DATABASE_URL: postgresql://opencruit:opencruit@postgres:5432/opencruit
+      REDIS_URL: redis://redis:6379
       HOST: 0.0.0.0
       PORT: 3000
     command: node apps/web/build

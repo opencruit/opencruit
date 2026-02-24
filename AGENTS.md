@@ -118,7 +118,7 @@ pnpm stack:down               # Stop docker stack
 
 Not microservices. Two app processes + infra services. One codebase.
 
-- **Web** (SvelteKit) — UI, SSR, API routes, search, auth
+- **Web** (SvelteKit) — UI, SSR, API routes, search, admin panel, auth
 - **Worker** (BullMQ consumer) — parser jobs, ingestion pipeline, background tasks
 - **PostgreSQL** — primary storage, full-text search (tsvector)
 - **Redis** — BullMQ queues
@@ -144,6 +144,17 @@ Not microservices. Two app processes + infra services. One codebase.
 - Ingestion pipeline: validate → normalize → fingerprint → deduplicate → store
 - Deduplication: fingerprint (sha256 of company+title+location) with first-source-wins conflict policy
 
+### Admin Panel
+
+- Route group `(admin)/admin/` inside `apps/web` — same SvelteKit process, separate layout
+- Pages: Dashboard (`/admin`), Sources (`/admin/sources`), Queues (`/admin/queues`), Jobs (`/admin/jobs`)
+- Data access: PostgreSQL (jobs, source_health, source_cursors) + Redis (BullMQ Queue read/enqueue)
+- Web app creates BullMQ `Queue` instances (not Workers) for queue operations — documented multi-client pattern
+- Source metadata in `$lib/sources.ts` (static map of 12 known sources, shared by admin and public pages)
+- Queue/Redis client singletons in `$lib/server/redis.ts` and `$lib/server/queues.ts`
+- No auth yet — admin routes are unprotected (future: `hooks.server.ts` role-based guard)
+- Public routes are under `(public)/` route group with own layout
+
 ### Events & Search
 
 - MVP search: PostgreSQL tsvector. Future: Meilisearch behind abstraction
@@ -151,7 +162,7 @@ Not microservices. Two app processes + infra services. One codebase.
 ### Self-Hosting
 
 - Single `docker compose up -d --build` — all features available (Apache-2.0, not open-core)
-- Local hybrid dev uses `docker-compose.dev.yml` for host Postgres port (`pnpm dev:infra` + `pnpm dev:web`)
+- Local hybrid dev uses `docker-compose.dev.yml` for host Postgres + Redis ports (`pnpm dev:infra` + `pnpm dev:web`)
 - Migrations run as one-shot `migrate` service (`pnpm --filter @opencruit/db db:migrate`) before `worker`/`web`
 - `db:push` is local prototyping only; production path is versioned SQL migrations in `packages/db/drizzle`
 - Operational runbooks: `docs/DEPLOYMENT.md`, `docs/OPERATIONS.md`, `docs/OBSERVABILITY.md`, `docs/TROUBLESHOOTING.md`
