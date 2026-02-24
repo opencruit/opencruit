@@ -21,6 +21,15 @@ pnpm dev:web
 It also starts `prometheus` (`http://localhost:9090`) and `grafana` (`http://localhost:3001`) for local observability.
 Use `http://localhost:5973` for local HMR UI.
 
+If localhost ports are busy (for example another project already uses `6379`), override host ports:
+
+```bash
+POSTGRES_HOST_PORT=5433 REDIS_HOST_PORT=6380 pnpm dev:infra
+POSTGRES_HOST_PORT=5433 REDIS_HOST_PORT=6380 pnpm dev:web
+```
+
+`pnpm dev:web` derives DB/Redis URLs from these host-port variables by default. Use `DEV_DATABASE_URL` / `DEV_REDIS_URL` only for explicit custom endpoints.
+
 Health check:
 
 ```bash

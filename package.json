@@ -9,7 +9,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "dev:infra": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres redis migrate worker prometheus grafana && docker compose stop web",
-    "dev:web": "DATABASE_URL=${DATABASE_URL:-postgresql://opencruit:opencruit@localhost:5432/opencruit} REDIS_URL=${REDIS_URL:-redis://localhost:${REDIS_HOST_PORT:-6379}} pnpm --filter @opencruit/web dev",
+    "dev:web": "DATABASE_URL=${DEV_DATABASE_URL:-postgresql://opencruit:opencruit@localhost:${POSTGRES_HOST_PORT:-5432}/opencruit} REDIS_URL=${DEV_REDIS_URL:-redis://localhost:${REDIS_HOST_PORT:-6379}} pnpm --filter @opencruit/web dev",
     "dev:hybrid": "pnpm dev:infra && pnpm dev:web",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
