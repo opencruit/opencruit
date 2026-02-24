@@ -1,6 +1,6 @@
 <script lang="ts">
   import '../app.css';
-  import { ModeWatcher, toggleMode, mode } from 'mode-watcher';
+  import { ModeWatcher, toggleMode } from 'mode-watcher';
   import Sun from '@lucide/svelte/icons/sun';
   import Moon from '@lucide/svelte/icons/moon';
   import { Button } from '$lib/components/ui/button/index.js';
@@ -17,11 +17,8 @@
         <span class="text-primary">Open</span><span class="text-muted-foreground">Cruit</span>
       </a>
       <Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Toggle theme">
-        {#if mode.current === 'dark'}
-          <Sun class="size-4" />
-        {:else}
-          <Moon class="size-4" />
-        {/if}
+        <Sun class="hidden size-4 dark:block" />
+        <Moon class="size-4 dark:hidden" />
       </Button>
     </div>
   </header>
